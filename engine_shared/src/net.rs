@@ -187,19 +187,21 @@ pub struct UnreliableConn {
 impl UnreliableConn {
     pub async fn connect(bind_addr: SocketAddr, peer: SocketAddr) -> anyhow::Result<Self> {
         let socket = UdpSocket::bind(bind_addr).await.context("udp bind")?;
-        socket.connect(peer).await.context("udp connect")?;
         Ok(Self { socket, peer })
     }
 
     pub async fn send(&self, msg: &NetMsg) -> anyhow::Result<()> {
         let payload = serde_json::to_vec(msg).context("serialize udp msg")?;
-        self.socket.send(&payload).await.context("udp send")?;
+        self.socket
+            .send_to(&payload, self.peer)
+            .await
+            .context("udp send")?;
         Ok(())
     }
 
     pub async fn recv(&self) -> anyhow::Result<NetMsg> {
         let mut buf = vec![0u8; 64 * 1024];
-        let n = self.socket.recv(&mut buf).await.context("udp recv")?;
+        let (n, _from) = self.socket.recv_from(&mut buf).await.context("udp recv")?;
         let msg = serde_json::from_slice(&buf[..n]).context("deserialize udp msg")?;
         Ok(msg)
     }
@@ -210,8 +212,8 @@ impl UnreliableConn {
         timeout: std::time::Duration,
     ) -> anyhow::Result<Option<NetMsg>> {
         let mut buf = vec![0u8; 64 * 1024];
-        match time::timeout(timeout, self.socket.recv(&mut buf)).await {
-            Ok(Ok(n)) => {
+        match time::timeout(timeout, self.socket.recv_from(&mut buf)).await {
+            Ok(Ok((n, _from))) => {
                 let msg = serde_json::from_slice(&buf[..n]).context("deserialize udp msg")?;
                 Ok(Some(msg))
             }

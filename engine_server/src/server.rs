@@ -237,7 +237,9 @@ impl GameServer {
                         reliable: conn,
                         udp_peer,
                         last_cmd_tick: 0,
-                        ready: false,
+                        // In many flows the client sends `ClientReady` after loading a map.
+                        // In tests we may not load a map at all, so allow snapshots immediately.
+                        ready: true,
                         player_entity: None,
                     },
                 );
