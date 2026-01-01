@@ -36,7 +36,7 @@ use tracing::{debug, info, warn};
 
 /// Connected client state.
 struct ClientState {
-    id: ClientId,
+    _id: ClientId,
     reliable: ReliableConn,
     udp_peer: SocketAddr,
     last_cmd_tick: u32,
@@ -233,7 +233,7 @@ impl GameServer {
                 self.clients.insert(
                     id,
                     ClientState {
-                        id,
+                        _id: id,
                         reliable: conn,
                         udp_peer,
                         last_cmd_tick: 0,
@@ -286,7 +286,7 @@ impl GameServer {
                 self.clients.insert(
                     id,
                     ClientState {
-                        id,
+                        _id: id,
                         reliable: conn,
                         udp_peer,
                         last_cmd_tick: 0,

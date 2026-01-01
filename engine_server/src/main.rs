@@ -78,10 +78,8 @@ async fn main() -> anyhow::Result<()> {
                 break;
             }
             let line = line.trim().to_string();
-            if !line.is_empty() {
-                if console_tx.blocking_send(line).is_err() {
-                    break;
-                }
+            if !line.is_empty() && console_tx.blocking_send(line).is_err() {
+                break;
             }
         }
     });

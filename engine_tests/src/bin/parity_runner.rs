@@ -110,7 +110,7 @@ fn run_steam_id_tests(mut builder: ReportBuilder) -> ReportBuilder {
     const DOC_URL: &str = "https://developer.valvesoftware.com/wiki/SteamID";
 
     // SID-001: SteamID64 Parsing
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "SID-001",
             "SteamID64 Parsing",
@@ -132,7 +132,7 @@ fn run_steam_id_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // SID-002: SteamID32 Conversion
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "SID-002",
             "SteamID32 Conversion",
@@ -153,7 +153,7 @@ fn run_steam_id_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // SID-003: SteamID3 Format
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "SID-003",
             "SteamID3 Format",
@@ -177,7 +177,7 @@ fn run_steam_id_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // SID-004: STEAM_X:Y:Z Format
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "SID-004",
             "STEAM_X:Y:Z Format",
@@ -201,7 +201,7 @@ fn run_steam_id_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // SID-005: Account Type Detection
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "SID-005",
             "Account Type Detection",
@@ -233,7 +233,7 @@ fn run_steam_id_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // SID-007: Invalid SteamID Rejection
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "SID-007",
             "Invalid SteamID Rejection",
@@ -268,7 +268,7 @@ fn run_auth_tests(mut builder: ReportBuilder) -> ReportBuilder {
     };
 
     // AUTH-001: Valid Steam Login
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "AUTH-001",
             "Valid Steam Login",
@@ -293,7 +293,7 @@ fn run_auth_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // AUTH-002: Invalid Credentials Rejection
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "AUTH-002",
             "Invalid Credentials Rejection",
@@ -317,7 +317,7 @@ fn run_auth_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // AUTH-005: Auth Ticket Validation
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "AUTH-005",
             "Auth Ticket Validation",
@@ -340,7 +340,7 @@ fn run_auth_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // AUTH-009: Auth Callback Processing
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "AUTH-009",
             "Auth Callback Processing",
@@ -381,7 +381,7 @@ fn run_lobby_tests(mut builder: ReportBuilder) -> ReportBuilder {
     use engine_shared::lobby::{LobbyError, LobbyManager, LobbySearchFilter, LobbyType};
 
     // LOB-001: Create Public Lobby
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "LOB-001",
             "Create Public Lobby",
@@ -407,7 +407,7 @@ fn run_lobby_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // LOB-005: Join Lobby by ID
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "LOB-005",
             "Join Lobby by ID",
@@ -435,7 +435,7 @@ fn run_lobby_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // LOB-007: Lobby Member Limit
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "LOB-007",
             "Lobby Member Limit",
@@ -466,7 +466,7 @@ fn run_lobby_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // LOB-010: Lobby Search
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "LOB-010",
             "Lobby Search",
@@ -503,7 +503,7 @@ fn run_chat_tests(mut builder: ReportBuilder) -> ReportBuilder {
     use engine_shared::chat::{ChatChannel, ChatManager, ChatResult, MAX_MESSAGE_LENGTH};
 
     // CHAT-001: Global Chat
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "CHAT-001",
             "Global Chat",
@@ -532,7 +532,7 @@ fn run_chat_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // CHAT-006: Message Length Limit
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "CHAT-006",
             "Message Length Limit",
@@ -555,7 +555,7 @@ fn run_chat_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // CHAT-007: Rate Limiting
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "CHAT-007",
             "Rate Limiting",
@@ -582,7 +582,7 @@ fn run_chat_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // CHAT-008: Mute Player
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "CHAT-008",
             "Mute Player",
@@ -627,7 +627,7 @@ fn run_gsi_tests(mut builder: ReportBuilder) -> ReportBuilder {
     };
 
     // GSI-001: Provider Block
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "GSI-001",
             "Provider Block",
@@ -655,7 +655,7 @@ fn run_gsi_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // GSI-009: Auth Token
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "GSI-009",
             "Auth Token",
@@ -677,7 +677,7 @@ fn run_gsi_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // GSI-009b: Invalid Token Rejection
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "GSI-009b",
             "Invalid Token Rejection",
@@ -701,7 +701,7 @@ fn run_gsi_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // GSI-010: HTTP POST Delivery
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "GSI-010",
             "JSON Payload Roundtrip",
@@ -740,7 +740,7 @@ fn run_network_tests(mut builder: ReportBuilder) -> ReportBuilder {
     use engine_shared::net::{decode_from_bytes, encode_to_bytes, NetMsg, PROTOCOL_VERSION};
 
     // NET-001: Connection Handshake
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "NET-001",
             "Protocol Message Encoding",
@@ -764,7 +764,7 @@ fn run_network_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // NET-002: Welcome Message
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "NET-002",
             "Welcome Message",
@@ -790,7 +790,7 @@ fn run_network_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // NET-003: Snapshot Message
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "NET-003",
             "Snapshot Message",
@@ -817,7 +817,7 @@ fn run_network_tests(mut builder: ReportBuilder) -> ReportBuilder {
     );
 
     // NET-004: Map Info Message
-    builder = builder.add(
+    builder = builder.add_test(
         run_test(
             "NET-004",
             "Map Info Message",

@@ -753,8 +753,7 @@ impl TestReport {
     }
 
     fn html_footer(&self) -> String {
-        format!(
-            r#"
+        r#"
     </div>
     <footer>
         <p>Source Engine Parity Test Suite</p>
@@ -763,7 +762,7 @@ impl TestReport {
 </body>
 </html>
 "#
-        )
+        .to_string()
     }
 
     /// Save report to file.
@@ -840,7 +839,7 @@ impl ReportBuilder {
         self
     }
 
-    pub fn add(mut self, result: TestResult) -> Self {
+    pub fn add_test(mut self, result: TestResult) -> Self {
         self.report.add_result(result);
         self
     }
@@ -858,20 +857,20 @@ mod tests {
     fn test_report_generation() {
         let report = ReportBuilder::new("Steam ID Tests")
             .subtitle("Source Engine Parity Suite")
-            .add(
+            .add_test(
                 TestResult::new("SID-001", "SteamID64 Parsing", "Steam ID")
                     .with_description("Parse 64-bit Steam ID correctly")
                     .with_priority(TestPriority::Critical)
                     .with_doc_reference("https://developer.valvesoftware.com/wiki/SteamID")
                     .pass(Duration::from_millis(5)),
             )
-            .add(
+            .add_test(
                 TestResult::new("SID-002", "SteamID32 Conversion", "Steam ID")
                     .with_description("Convert between 32-bit and 64-bit formats")
                     .with_priority(TestPriority::Critical)
                     .pass(Duration::from_millis(3)),
             )
-            .add(
+            .add_test(
                 TestResult::new("AUTH-001", "Valid Steam Login", "Authentication")
                     .with_description("Client authenticates with valid Steam credentials")
                     .with_priority(TestPriority::Critical)
@@ -891,10 +890,10 @@ mod tests {
     #[test]
     fn test_failed_report() {
         let report = ReportBuilder::new("Test Suite")
-            .add(
+            .add_test(
                 TestResult::new("TEST-001", "Passing Test", "Tests").pass(Duration::from_millis(1)),
             )
-            .add(
+            .add_test(
                 TestResult::new("TEST-002", "Failing Test", "Tests")
                     .fail(Duration::from_millis(2), "Expected 42, got 0"),
             )
@@ -911,7 +910,7 @@ mod tests {
     fn test_html_generation() {
         let report = ReportBuilder::new("HTML Test")
             .subtitle("Test HTML generation")
-            .add(
+            .add_test(
                 TestResult::new("HTML-001", "Generate HTML", "HTML").pass(Duration::from_millis(1)),
             )
             .build();
@@ -927,10 +926,10 @@ mod tests {
     #[test]
     fn test_category_stats() {
         let report = ReportBuilder::new("Category Test")
-            .add(TestResult::new("A-001", "Test A1", "Category A").pass(Duration::ZERO))
-            .add(TestResult::new("A-002", "Test A2", "Category A").pass(Duration::ZERO))
-            .add(TestResult::new("B-001", "Test B1", "Category B").pass(Duration::ZERO))
-            .add(TestResult::new("B-002", "Test B2", "Category B").fail(Duration::ZERO, "error"))
+            .add_test(TestResult::new("A-001", "Test A1", "Category A").pass(Duration::ZERO))
+            .add_test(TestResult::new("A-002", "Test A2", "Category A").pass(Duration::ZERO))
+            .add_test(TestResult::new("B-001", "Test B1", "Category B").pass(Duration::ZERO))
+            .add_test(TestResult::new("B-002", "Test B2", "Category B").fail(Duration::ZERO, "error"))
             .build();
 
         let by_cat = report.stats_by_category();

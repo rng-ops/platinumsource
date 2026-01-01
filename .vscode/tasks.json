@@ -564,6 +564,11 @@
 			"label": "cargo fix 2",
 			"type": "shell",
 			"command": "cargo fix --workspace --allow-dirty --allow-no-vcs 2>&1 | tail -30"
+		},
+		{
+			"label": "final test",
+			"type": "shell",
+			"command": "cargo test --workspace 2>&1 | grep -E 'test result|passed|failed'"
 		}
 	]
 }

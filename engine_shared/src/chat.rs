@@ -156,7 +156,6 @@ impl RateLimiter {
             return None;
         }
 
-        let cutoff = Instant::now() - self.window;
         self.history.front().map(|&oldest| {
             let expires = oldest + self.window;
             expires.saturating_duration_since(Instant::now())

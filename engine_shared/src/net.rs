@@ -257,7 +257,7 @@ pub fn encode_to_bytes(msg: &NetMsg) -> anyhow::Result<Bytes> {
 }
 
 pub fn decode_from_bytes(b: &[u8]) -> anyhow::Result<NetMsg> {
-    Ok(serde_json::from_slice(b).context("deserialize")?)
+    serde_json::from_slice(b).context("deserialize")
 }
 
 #[cfg(test)]

@@ -283,7 +283,7 @@ impl Console {
         };
 
         // Check if it's a cvar query/set (just typing the name).
-        if self.commands.get(cmd_name.as_str()).is_none() {
+        if !self.commands.contains_key(cmd_name.as_str()) {
             let cvar_info = self.cvars.read().ok().and_then(|cvars| {
                 cvars
                     .get(cmd_name.as_str())
@@ -343,9 +343,9 @@ fn parse_command_line(line: &str) -> Vec<String> {
     let mut tokens = Vec::new();
     let mut current = String::new();
     let mut in_quotes = false;
-    let mut chars = line.chars().peekable();
+    let chars = line.chars();
 
-    while let Some(c) = chars.next() {
+    for c in chars {
         match c {
             '"' => {
                 in_quotes = !in_quotes;

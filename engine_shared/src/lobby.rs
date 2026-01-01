@@ -851,7 +851,7 @@ mod tests {
         let mut manager = LobbyManager::new();
 
         // Create a lobby with 8 slots, 1 member
-        let lobby_id = manager.create_lobby(test_steam_id(1), LobbyType::Public, 8);
+        let _lobby_id = manager.create_lobby(test_steam_id(1), LobbyType::Public, 8);
 
         // Search for lobbies with at least 5 slots
         let filter = LobbySearchFilter::new().with_slots_available(5);

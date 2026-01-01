@@ -238,7 +238,7 @@ impl BspMap {
         }
 
         let version = read_u32(r)?;
-        if version < BSP_VERSION_MIN || version > BSP_VERSION_MAX {
+        if !(BSP_VERSION_MIN..=BSP_VERSION_MAX).contains(&version) {
             bail!("unsupported BSP version: {}", version);
         }
 

@@ -74,9 +74,6 @@ impl SnapshotBuffer {
 }
 
 /// Convenience: find entity state in a snapshot.
-pub fn find_entity<'a>(
-    snap: &'a Snapshot,
-    id: engine_shared::ecs::EntityId,
-) -> Option<&'a EntityState> {
+pub fn find_entity(snap: &Snapshot, id: engine_shared::ecs::EntityId) -> Option<&EntityState> {
     snap.entities.iter().find(|e| e.id == id)
 }
