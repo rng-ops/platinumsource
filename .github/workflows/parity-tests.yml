@@ -1,0 +1,144 @@
+name: Parity Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      report_retention:
+        description: 'Days to retain report artifacts'
+        required: false
+        default: '30'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  parity-tests:
+    name: Run Parity Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Build workspace
+        run: cargo build --workspace --release
+
+      - name: Run unit tests
+        run: cargo test --workspace
+
+      - name: Run parity tests
+        env:
+          GIT_COMMIT: ${{ github.sha }}
+          GIT_BRANCH: ${{ github.ref_name }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          mkdir -p test-reports
+          cargo run --release --bin parity_runner -- test-reports
+
+      - name: Upload HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-test-report-${{ github.run_number }}
+          path: test-reports/parity-tests.html
+          retention-days: ${{ inputs.report_retention || 30 }}
+
+      - name: Upload JSON Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-test-data-${{ github.run_number }}
+          path: test-reports/parity-tests.json
+          retention-days: ${{ inputs.report_retention || 30 }}
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## 📊 Parity Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f test-reports/parity-tests.json ]; then
+            PASSED=$(jq '.overall_stats.passed' test-reports/parity-tests.json)
+            FAILED=$(jq '.overall_stats.failed' test-reports/parity-tests.json)
+            TOTAL=$(jq '.overall_stats.total' test-reports/parity-tests.json)
+            RATE=$(jq '.overall_stats.pass_rate' test-reports/parity-tests.json)
+            
+            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Passed | $PASSED |" >> $GITHUB_STEP_SUMMARY
+            echo "| ❌ Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📋 Total | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📈 Pass Rate | ${RATE}% |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📄 Download the full HTML report from the artifacts." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No test results found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  deploy-report:
+    name: Deploy Report to Pages
+    needs: parity-tests
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download HTML Report
+        uses: actions/download-artifact@v4
+        with:
+          name: parity-test-report-${{ github.run_number }}
+          path: public
+
+      - name: Download JSON Data
+        uses: actions/download-artifact@v4
+        with:
+          name: parity-test-data-${{ github.run_number }}
+          path: public
+
+      - name: Create index redirect
+        run: |
+          mv public/parity-tests.html public/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

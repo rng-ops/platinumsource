@@ -1,0 +1,454 @@
+{
+  "title": "Source Engine Parity Tests",
+  "subtitle": "Comprehensive validation suite for Source Engine 2014 compatibility",
+  "timestamp": 1767299801,
+  "git_commit": "development",
+  "git_branch": "main",
+  "build_number": null,
+  "results": [
+    {
+      "id": "SID-001",
+      "name": "SteamID64 Parsing",
+      "description": "Parse 64-bit Steam ID correctly",
+      "category": "Steam ID",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 10459
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/SteamID",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "SID-002",
+      "name": "SteamID32 Conversion",
+      "description": "Convert between 32-bit and 64-bit formats",
+      "category": "Steam ID",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 0
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/SteamID",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "SID-003",
+      "name": "SteamID3 Format",
+      "description": "Parse [U:1:XXXXX] format",
+      "category": "Steam ID",
+      "status": "Passed",
+      "priority": "High",
+      "duration": {
+        "secs": 0,
+        "nanos": 32500
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/SteamID",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "SID-004",
+      "name": "STEAM_X:Y:Z Format",
+      "description": "Parse legacy STEAM_0:1:XXXXX format",
+      "category": "Steam ID",
+      "status": "Passed",
+      "priority": "High",
+      "duration": {
+        "secs": 0,
+        "nanos": 750
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/SteamID",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "SID-005",
+      "name": "Account Type Detection",
+      "description": "Identify Individual/GameServer/Clan account types",
+      "category": "Steam ID",
+      "status": "Passed",
+      "priority": "High",
+      "duration": {
+        "secs": 0,
+        "nanos": 0
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/SteamID",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "SID-007",
+      "name": "Invalid SteamID Rejection",
+      "description": "Reject malformed Steam IDs",
+      "category": "Steam ID",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 0
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/SteamID",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "AUTH-001",
+      "name": "Valid Steam Login",
+      "description": "Client authenticates with valid Steam credentials via ISteamUser",
+      "category": "Authentication",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 125
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://partner.steamgames.com/doc/features/auth",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "AUTH-002",
+      "name": "Invalid Credentials Rejection",
+      "description": "Server rejects connections without valid Steam auth",
+      "category": "Authentication",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 83
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://partner.steamgames.com/doc/features/auth",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "AUTH-005",
+      "name": "Auth Ticket Validation",
+      "description": "Server validates ticket via BeginAuthSession",
+      "category": "Authentication",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 125
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://partner.steamgames.com/doc/features/auth",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "AUTH-009",
+      "name": "Auth Callback Processing",
+      "description": "ValidateAuthTicketResponse_t callback processed correctly",
+      "category": "Authentication",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 42
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://partner.steamgames.com/doc/features/auth",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "LOB-001",
+      "name": "Create Public Lobby",
+      "description": "CreateLobby with k_ELobbyTypePublic",
+      "category": "Lobby System",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 11041
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://partner.steamgames.com/doc/features/multiplayer/matchmaking",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "LOB-005",
+      "name": "Join Lobby by ID",
+      "description": "JoinLobby with valid CSteamID",
+      "category": "Lobby System",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 625
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://partner.steamgames.com/doc/features/multiplayer/matchmaking",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "LOB-007",
+      "name": "Lobby Member Limit",
+      "description": "SetLobbyMemberLimit enforcement",
+      "category": "Lobby System",
+      "status": "Passed",
+      "priority": "High",
+      "duration": {
+        "secs": 0,
+        "nanos": 10542
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://partner.steamgames.com/doc/features/multiplayer/matchmaking",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "LOB-010",
+      "name": "Lobby Search",
+      "description": "RequestLobbyList with filters",
+      "category": "Lobby System",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 750
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://partner.steamgames.com/doc/features/multiplayer/matchmaking",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "CHAT-001",
+      "name": "Global Chat",
+      "description": "All-player broadcast",
+      "category": "Chat System",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 1084
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Chat",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "CHAT-006",
+      "name": "Message Length Limit",
+      "description": "Truncation at max length",
+      "category": "Chat System",
+      "status": "Passed",
+      "priority": "High",
+      "duration": {
+        "secs": 0,
+        "nanos": 333
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Chat",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "CHAT-007",
+      "name": "Rate Limiting",
+      "description": "Spam prevention",
+      "category": "Chat System",
+      "status": "Passed",
+      "priority": "High",
+      "duration": {
+        "secs": 0,
+        "nanos": 209
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Chat",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "CHAT-008",
+      "name": "Mute Player",
+      "description": "Hide messages from muted player",
+      "category": "Chat System",
+      "status": "Passed",
+      "priority": "High",
+      "duration": {
+        "secs": 0,
+        "nanos": 959
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Chat",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "GSI-001",
+      "name": "Provider Block",
+      "description": "Game identity information",
+      "category": "Game State Integration",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 10583
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "GSI-009",
+      "name": "Auth Token",
+      "description": "Token-based validation",
+      "category": "Game State Integration",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 110250
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "GSI-009b",
+      "name": "Invalid Token Rejection",
+      "description": "Reject payloads with wrong auth token",
+      "category": "Game State Integration",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 1458
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "GSI-010",
+      "name": "JSON Payload Roundtrip",
+      "description": "Payload delivery and parsing",
+      "category": "Game State Integration",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 8458
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "NET-001",
+      "name": "Protocol Message Encoding",
+      "description": "NetMsg serialization roundtrip",
+      "category": "Network Protocol",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 958
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "NET-002",
+      "name": "Welcome Message",
+      "description": "Client ID assignment",
+      "category": "Network Protocol",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 584
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "NET-003",
+      "name": "Snapshot Message",
+      "description": "Game state snapshot encoding",
+      "category": "Network Protocol",
+      "status": "Passed",
+      "priority": "Critical",
+      "duration": {
+        "secs": 0,
+        "nanos": 708
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking",
+      "source_file": null,
+      "line_number": null
+    },
+    {
+      "id": "NET-004",
+      "name": "Map Info Message",
+      "description": "Map loading packet",
+      "category": "Network Protocol",
+      "status": "Passed",
+      "priority": "High",
+      "duration": {
+        "secs": 0,
+        "nanos": 1000
+      },
+      "error_message": null,
+      "stack_trace": null,
+      "doc_reference": "https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking",
+      "source_file": null,
+      "line_number": null
+    }
+  ],
+  "coverage_percent": null,
+  "metadata": {}
+}

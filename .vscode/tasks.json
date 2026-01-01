@@ -1,0 +1,569 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "cargo test (workspace)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (workspace)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"-q"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (workspace, verbose errors)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (short diagnostics)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"--message-format=short"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (workspace)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (short diagnostics)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"--message-format=short"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (workspace)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (workspace, ensure completion)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (single integration)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"-p",
+				"engine_tests",
+				"--test",
+				"client_server",
+				"--",
+				"--nocapture"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (single integration)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"-p",
+				"engine_tests",
+				"--test",
+				"client_server",
+				"--",
+				"--nocapture"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (single integration)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"-p",
+				"engine_tests",
+				"--test",
+				"client_server"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (single integration)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"-p",
+				"engine_tests",
+				"--test",
+				"client_server"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (single integration)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"-p",
+				"engine_tests",
+				"--test",
+				"client_server"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (single integration)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"-p",
+				"engine_tests",
+				"--test",
+				"client_server"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (workspace)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (workspace)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (engine_tests only)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"-p",
+				"engine_tests",
+				"--",
+				"--nocapture"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test (workspace, no hanging)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"--",
+				"--test-threads=1"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo build release",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--release"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo build release (complete)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--release"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test engine_tests",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"-p",
+				"engine_tests"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test client_server integration",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"-p",
+				"engine_tests",
+				"--test",
+				"client_server",
+				"--",
+				"--nocapture"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo build release",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--release"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo build release (short)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--release",
+				"--message-format=short"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo build release",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--release",
+				"--message-format=short"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo build release",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--release",
+				"--message-format=short"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo build release",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--release"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo build",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--release"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"--workspace"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"--workspace"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo test",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test",
+				"--workspace"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo build release",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--release"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "cargo check workspace",
+			"type": "shell",
+			"command": "cargo check --workspace"
+		},
+		{
+			"label": "cargo check detailed",
+			"type": "shell",
+			"command": "cargo check --workspace 2>&1 | head -100"
+		},
+		{
+			"label": "cargo check 2",
+			"type": "shell",
+			"command": "cargo check --workspace 2>&1 | head -150"
+		},
+		{
+			"label": "cargo check 3",
+			"type": "shell",
+			"command": "cargo check --workspace 2>&1"
+		},
+		{
+			"label": "cargo test workspace",
+			"type": "shell",
+			"command": "cargo test --workspace 2>&1"
+		},
+		{
+			"label": "cargo test errors",
+			"type": "shell",
+			"command": "cargo test --workspace 2>&1 | grep -A 20 'error\\[E'"
+		},
+		{
+			"label": "check PartialEq",
+			"type": "shell",
+			"command": "cargo check --workspace 2>&1 | grep 'must implement'"
+		},
+		{
+			"label": "check 4",
+			"type": "shell",
+			"command": "cargo check --workspace 2>&1"
+		},
+		{
+			"label": "test workspace 2",
+			"type": "shell",
+			"command": "cargo test --workspace 2>&1 | tail -100"
+		},
+		{
+			"label": "test all",
+			"type": "shell",
+			"command": "cargo test --workspace"
+		},
+		{
+			"label": "run parity_runner",
+			"type": "shell",
+			"command": "cargo run --bin parity_runner 2>&1"
+		},
+		{
+			"label": "test summary",
+			"type": "shell",
+			"command": "cargo test --workspace -- --test-threads=1 2>&1 | grep -E '^(test |running|ok|FAILED|passed|failed)'"
+		},
+		{
+			"label": "test summary 2",
+			"type": "shell",
+			"command": "cargo test --workspace 2>&1 | tail -30"
+		},
+		{
+			"label": "run all tests",
+			"type": "shell",
+			"command": "cargo test --workspace --no-fail-fast 2>&1"
+		},
+		{
+			"label": "test counts",
+			"type": "shell",
+			"command": "cargo test --workspace 2>&1 | grep -E 'test result|passed|running'"
+		},
+		{
+			"label": "test results only",
+			"type": "shell",
+			"command": "cargo test --workspace 2>&1 | grep 'test result'"
+		},
+		{
+			"label": "count tests",
+			"type": "shell",
+			"command": "cargo test --workspace 2>&1 | tee /tmp/test-output.txt && cat /tmp/test-output.txt | grep -c 'ok$'"
+		},
+		{
+			"label": "test fix",
+			"type": "shell",
+			"command": "cargo test --workspace --lib 2>&1 | grep -E '(test result|FAILED|passed;)'"
+		},
+		{
+			"label": "test chat",
+			"type": "shell",
+			"command": "cargo test -p engine_shared chat 2>&1"
+		},
+		{
+			"label": "test chat_002",
+			"type": "shell",
+			"command": "cargo test -p engine_shared chat_002 2>&1"
+		},
+		{
+			"label": "test chat_003",
+			"type": "shell",
+			"command": "cargo test -p engine_shared chat_003 2>&1"
+		},
+		{
+			"label": "parity runner final",
+			"type": "shell",
+			"command": "cargo run --release --bin parity_runner 2>&1"
+		},
+		{
+			"label": "cargo fix",
+			"type": "shell",
+			"command": "cargo fix --workspace --allow-dirty 2>&1 | tail -20"
+		},
+		{
+			"label": "cargo fix 2",
+			"type": "shell",
+			"command": "cargo fix --workspace --allow-dirty --allow-no-vcs 2>&1 | tail -30"
+		}
+	]
+}

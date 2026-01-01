@@ -1,0 +1,22 @@
+[package]
+name = "engine_client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+description = "Client module with input/prediction/interpolation scaffolding."
+
+[[bin]]
+name = "client"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+engine_shared = { path = "../engine_shared" }
+
+[dev-dependencies]
+tokio.workspace = true
