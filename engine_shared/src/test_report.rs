@@ -929,7 +929,9 @@ mod tests {
             .add_test(TestResult::new("A-001", "Test A1", "Category A").pass(Duration::ZERO))
             .add_test(TestResult::new("A-002", "Test A2", "Category A").pass(Duration::ZERO))
             .add_test(TestResult::new("B-001", "Test B1", "Category B").pass(Duration::ZERO))
-            .add_test(TestResult::new("B-002", "Test B2", "Category B").fail(Duration::ZERO, "error"))
+            .add_test(
+                TestResult::new("B-002", "Test B2", "Category B").fail(Duration::ZERO, "error"),
+            )
             .build();
 
         let by_cat = report.stats_by_category();
