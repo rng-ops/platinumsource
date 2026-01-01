@@ -31,11 +31,7 @@ use std::{
     path::PathBuf,
     time::Duration,
 };
-use tokio::{
-    net::UdpSocket,
-    sync::mpsc,
-    time::Instant,
-};
+use tokio::{net::UdpSocket, sync::mpsc, time::Instant};
 use tracing::{debug, info, warn};
 
 /// Connected client state.
@@ -114,9 +110,24 @@ impl GameServer {
     }
 
     fn register_cvars(console: &mut Console) {
-        console.register_cvar("sv_tickrate", CvarValue::Int(64), "Server tick rate", CvarFlags::NONE);
-        console.register_cvar("sv_maxclients", CvarValue::Int(16), "Max connected clients", CvarFlags::NONE);
-        console.register_cvar("sv_cheats", CvarValue::Bool(false), "Allow cheat commands", CvarFlags::REPLICATED);
+        console.register_cvar(
+            "sv_tickrate",
+            CvarValue::Int(64),
+            "Server tick rate",
+            CvarFlags::NONE,
+        );
+        console.register_cvar(
+            "sv_maxclients",
+            CvarValue::Int(16),
+            "Max connected clients",
+            CvarFlags::NONE,
+        );
+        console.register_cvar(
+            "sv_cheats",
+            CvarValue::Bool(false),
+            "Allow cheat commands",
+            CvarFlags::REPLICATED,
+        );
     }
 
     /// Sets the console input receiver.
@@ -495,7 +506,10 @@ impl GameServer {
             return Ok(());
         };
 
-        let client = self.clients.get_mut(&client_id).context("client not found")?;
+        let client = self
+            .clients
+            .get_mut(&client_id)
+            .context("client not found")?;
 
         for ent in &map.entities {
             if ent.classname == "worldspawn" {

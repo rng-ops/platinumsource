@@ -49,8 +49,7 @@ fn parse_args() -> EngineConfig {
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
         .init();
 
@@ -87,7 +86,9 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    println!("Server ready. Type 'map <mapname>' to load a map, 'status' for info, 'quit' to exit.");
+    println!(
+        "Server ready. Type 'map <mapname>' to load a map, 'status' for info, 'quit' to exit."
+    );
     println!();
 
     // Main server loop.

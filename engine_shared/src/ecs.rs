@@ -94,7 +94,14 @@ mod tests {
     fn ecs_insert_and_get() {
         let mut world = World::default();
         let e = world.spawn();
-        world.insert(e, Position { x: 1.0, y: 2.0, z: 3.0 });
+        world.insert(
+            e,
+            Position {
+                x: 1.0,
+                y: 2.0,
+                z: 3.0,
+            },
+        );
         assert_eq!(world.get::<Position>(e).unwrap().x, 1.0);
     }
 }

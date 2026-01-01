@@ -11,13 +11,19 @@ use engine_shared::net::{decode_from_bytes, encode_to_bytes, ClientId, NetMsg, P
 /// Unit-style test: protocol messages roundtrip correctly.
 #[test]
 fn protocol_messages_roundtrip() -> anyhow::Result<()> {
-    let hello = NetMsg::Hello { protocol: PROTOCOL_VERSION };
+    let hello = NetMsg::Hello {
+        protocol: PROTOCOL_VERSION,
+    };
     assert_eq!(decode_from_bytes(&encode_to_bytes(&hello)?)?, hello);
 
-    let udp_hello = NetMsg::UdpHello { client_udp_port: 50000 };
+    let udp_hello = NetMsg::UdpHello {
+        client_udp_port: 50000,
+    };
     assert_eq!(decode_from_bytes(&encode_to_bytes(&udp_hello)?)?, udp_hello);
 
-    let welcome = NetMsg::Welcome { client_id: ClientId(1) };
+    let welcome = NetMsg::Welcome {
+        client_id: ClientId(1),
+    };
     assert_eq!(decode_from_bytes(&encode_to_bytes(&welcome)?)?, welcome);
 
     Ok(())

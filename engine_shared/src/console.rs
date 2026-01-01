@@ -106,7 +106,8 @@ impl Default for CvarFlags {
 }
 
 /// Command handler function type.
-pub type CommandHandler = Box<dyn Fn(&[&str], &mut ConsoleContext) -> anyhow::Result<()> + Send + Sync>;
+pub type CommandHandler =
+    Box<dyn Fn(&[&str], &mut ConsoleContext) -> anyhow::Result<()> + Send + Sync>;
 
 /// Context passed to command handlers.
 pub struct ConsoleContext {
@@ -126,7 +127,10 @@ impl ConsoleContext {
     }
 
     pub fn set_cvar(&self, name: &str, value: CvarValue) -> anyhow::Result<()> {
-        let mut cvars = self.cvars.write().map_err(|_| anyhow::anyhow!("lock poisoned"))?;
+        let mut cvars = self
+            .cvars
+            .write()
+            .map_err(|_| anyhow::anyhow!("lock poisoned"))?;
         if let Some(cvar) = cvars.get_mut(name) {
             cvar.value = value;
             Ok(())
@@ -186,7 +190,9 @@ impl Console {
             let cvars = ctx.cvars.read().map_err(|_| anyhow::anyhow!("lock"))?;
             let lines: Vec<String> = cvars
                 .iter()
-                .map(|(name, cvar)| format!("  {} = {} (default: {})", name, cvar.value, cvar.default))
+                .map(|(name, cvar)| {
+                    format!("  {} = {} (default: {})", name, cvar.value, cvar.default)
+                })
                 .collect();
             drop(cvars);
             for line in lines {
@@ -224,7 +230,13 @@ impl Console {
     }
 
     /// Registers a console variable.
-    pub fn register_cvar(&mut self, name: &str, default: CvarValue, description: &str, flags: CvarFlags) {
+    pub fn register_cvar(
+        &mut self,
+        name: &str,
+        default: CvarValue,
+        description: &str,
+        flags: CvarFlags,
+    ) {
         let cvar = Cvar {
             name: name.to_string(),
             value: default.clone(),
@@ -273,9 +285,9 @@ impl Console {
         // Check if it's a cvar query/set (just typing the name).
         if self.commands.get(cmd_name.as_str()).is_none() {
             let cvar_info = self.cvars.read().ok().and_then(|cvars| {
-                cvars.get(cmd_name.as_str()).map(|cvar| {
-                    (cvar.name.clone(), cvar.value.clone(), cvar.default.clone())
-                })
+                cvars
+                    .get(cmd_name.as_str())
+                    .map(|cvar| (cvar.name.clone(), cvar.value.clone(), cvar.default.clone()))
             });
 
             if let Some((name, value, default)) = cvar_info {
@@ -363,7 +375,12 @@ mod tests {
     #[test]
     fn console_cvar_roundtrip() {
         let mut console = Console::new();
-        console.register_cvar("test_var", CvarValue::Int(42), "Test variable", CvarFlags::NONE);
+        console.register_cvar(
+            "test_var",
+            CvarValue::Int(42),
+            "Test variable",
+            CvarFlags::NONE,
+        );
 
         assert_eq!(console.get_cvar("test_var"), Some(CvarValue::Int(42)));
 

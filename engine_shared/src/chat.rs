@@ -157,12 +157,10 @@ impl RateLimiter {
         }
 
         let cutoff = Instant::now() - self.window;
-        self.history
-            .front()
-            .map(|&oldest| {
-                let expires = oldest + self.window;
-                expires.saturating_duration_since(Instant::now())
-            })
+        self.history.front().map(|&oldest| {
+            let expires = oldest + self.window;
+            expires.saturating_duration_since(Instant::now())
+        })
     }
 }
 
@@ -287,7 +285,8 @@ impl ChatManager {
 
     /// Register a player.
     pub fn add_player(&mut self, steam_id: SteamId) {
-        self.players.insert(steam_id, PlayerChatState::new(steam_id));
+        self.players
+            .insert(steam_id, PlayerChatState::new(steam_id));
     }
 
     /// Remove a player.
@@ -328,7 +327,10 @@ impl ChatManager {
         content: &str,
     ) -> Result<Vec<SteamId>, ChatResult> {
         // Validate sender
-        let sender_state = self.players.get_mut(&sender).ok_or(ChatResult::SenderNotFound)?;
+        let sender_state = self
+            .players
+            .get_mut(&sender)
+            .ok_or(ChatResult::SenderNotFound)?;
 
         // Check mute status
         if sender_state.server_muted {
@@ -357,7 +359,8 @@ impl ChatManager {
         let message = ChatMessage::new(sender, sender_name, channel, content, self.current_tick);
 
         // Determine recipients
-        let recipients: Vec<SteamId> = self.players
+        let recipients: Vec<SteamId> = self
+            .players
             .iter()
             .filter(|(&pid, state)| {
                 // Don't send to sender (they already have it)
@@ -456,7 +459,9 @@ impl ProfanityFilter {
     /// Check if message contains blocked words.
     pub fn contains_blocked(&self, message: &str) -> bool {
         let lower = message.to_lowercase();
-        self.blocked_words.iter().any(|w| lower.contains(w.as_str()))
+        self.blocked_words
+            .iter()
+            .any(|w| lower.contains(w.as_str()))
     }
 }
 
@@ -483,22 +488,19 @@ mod tests {
     #[test]
     fn chat_001_global_broadcast() {
         let mut manager = ChatManager::new(100);
-        
+
         let sender = test_steam_id(1);
         let receiver1 = test_steam_id(2);
         let receiver2 = test_steam_id(3);
-        
+
         manager.add_player(sender);
         manager.add_player(receiver1);
         manager.add_player(receiver2);
-        
-        let recipients = manager.send_message(
-            sender,
-            "Player1",
-            ChatChannel::Global,
-            "Hello everyone!"
-        ).unwrap();
-        
+
+        let recipients = manager
+            .send_message(sender, "Player1", ChatChannel::Global, "Hello everyone!")
+            .unwrap();
+
         assert_eq!(recipients.len(), 2);
         assert!(recipients.contains(&receiver1));
         assert!(recipients.contains(&receiver2));
@@ -511,26 +513,23 @@ mod tests {
     #[test]
     fn chat_002_team_only() {
         let mut manager = ChatManager::new(100);
-        
+
         let sender = test_steam_id(1);
         let teammate = test_steam_id(2);
         let enemy = test_steam_id(3);
-        
+
         manager.add_player(sender);
         manager.add_player(teammate);
         manager.add_player(enemy);
-        
+
         manager.set_player_team(sender, Some(1));
         manager.set_player_team(teammate, Some(1));
         manager.set_player_team(enemy, Some(2));
-        
-        let recipients = manager.send_message(
-            sender,
-            "Player1",
-            ChatChannel::Team(1),
-            "Team message"
-        ).unwrap();
-        
+
+        let recipients = manager
+            .send_message(sender, "Player1", ChatChannel::Team(1), "Team message")
+            .unwrap();
+
         assert_eq!(recipients.len(), 1);
         assert!(recipients.contains(&teammate));
         assert!(!recipients.contains(&enemy));
@@ -543,26 +542,23 @@ mod tests {
     #[test]
     fn chat_003_squad_only() {
         let mut manager = ChatManager::new(100);
-        
+
         let sender = test_steam_id(1);
         let squadmate = test_steam_id(2);
         let other = test_steam_id(3);
-        
+
         manager.add_player(sender);
         manager.add_player(squadmate);
         manager.add_player(other);
-        
+
         manager.set_player_squad(sender, Some(100));
         manager.set_player_squad(squadmate, Some(100));
         manager.set_player_squad(other, Some(200));
-        
-        let recipients = manager.send_message(
-            sender,
-            "Player1",
-            ChatChannel::Squad(100),
-            "Squad message"
-        ).unwrap();
-        
+
+        let recipients = manager
+            .send_message(sender, "Player1", ChatChannel::Squad(100), "Squad message")
+            .unwrap();
+
         assert_eq!(recipients.len(), 1);
         assert!(recipients.contains(&squadmate));
     }
@@ -574,22 +570,24 @@ mod tests {
     #[test]
     fn chat_004_private_message() {
         let mut manager = ChatManager::new(100);
-        
+
         let sender = test_steam_id(1);
         let recipient = test_steam_id(2);
         let other = test_steam_id(3);
-        
+
         manager.add_player(sender);
         manager.add_player(recipient);
         manager.add_player(other);
-        
-        let recipients = manager.send_message(
-            sender,
-            "Player1",
-            ChatChannel::Private(recipient),
-            "Private message"
-        ).unwrap();
-        
+
+        let recipients = manager
+            .send_message(
+                sender,
+                "Player1",
+                ChatChannel::Private(recipient),
+                "Private message",
+            )
+            .unwrap();
+
         assert_eq!(recipients.len(), 1);
         assert!(recipients.contains(&recipient));
         assert!(!recipients.contains(&other));
@@ -604,16 +602,11 @@ mod tests {
         let mut manager = ChatManager::new(100);
         let sender = test_steam_id(1);
         manager.add_player(sender);
-        
+
         let long_message = "x".repeat(MAX_MESSAGE_LENGTH + 1);
-        
-        let result = manager.send_message(
-            sender,
-            "Player1",
-            ChatChannel::Global,
-            &long_message
-        );
-        
+
+        let result = manager.send_message(sender, "Player1", ChatChannel::Global, &long_message);
+
         assert_eq!(result, Err(ChatResult::MessageTooLong));
     }
 
@@ -622,16 +615,11 @@ mod tests {
         let mut manager = ChatManager::new(100);
         let sender = test_steam_id(1);
         manager.add_player(sender);
-        
+
         let max_message = "x".repeat(MAX_MESSAGE_LENGTH);
-        
-        let result = manager.send_message(
-            sender,
-            "Player1",
-            ChatChannel::Global,
-            &max_message
-        );
-        
+
+        let result = manager.send_message(sender, "Player1", ChatChannel::Global, &max_message);
+
         assert!(result.is_ok());
     }
 
@@ -642,12 +630,12 @@ mod tests {
     #[test]
     fn chat_007_rate_limiting() {
         let mut limiter = RateLimiter::new(3, Duration::from_millis(100));
-        
+
         // Send 3 messages (should succeed)
         assert!(limiter.record_message());
         assert!(limiter.record_message());
         assert!(limiter.record_message());
-        
+
         // 4th message should fail
         assert!(!limiter.record_message());
         assert!(!limiter.can_send());
@@ -656,14 +644,14 @@ mod tests {
     #[test]
     fn chat_007_rate_limit_recovery() {
         let mut limiter = RateLimiter::new(2, Duration::from_millis(50));
-        
+
         limiter.record_message();
         limiter.record_message();
         assert!(!limiter.can_send());
-        
+
         // Wait for window to pass
         sleep(Duration::from_millis(60));
-        
+
         assert!(limiter.can_send());
         assert!(limiter.record_message());
     }
@@ -681,23 +669,23 @@ mod tests {
     #[test]
     fn chat_008_player_mute() {
         let mut manager = ChatManager::new(100);
-        
+
         let sender = test_steam_id(1);
         let receiver = test_steam_id(2);
-        
+
         manager.add_player(sender);
         manager.add_player(receiver);
-        
+
         // Receiver mutes sender
-        manager.get_player_mut(receiver).unwrap().mute_player(sender);
-        
-        let recipients = manager.send_message(
-            sender,
-            "Player1",
-            ChatChannel::Global,
-            "Hello"
-        ).unwrap();
-        
+        manager
+            .get_player_mut(receiver)
+            .unwrap()
+            .mute_player(sender);
+
+        let recipients = manager
+            .send_message(sender, "Player1", ChatChannel::Global, "Hello")
+            .unwrap();
+
         // Receiver should not receive the message
         assert!(!recipients.contains(&receiver));
     }
@@ -705,24 +693,27 @@ mod tests {
     #[test]
     fn chat_008_unmute_player() {
         let mut manager = ChatManager::new(100);
-        
+
         let sender = test_steam_id(1);
         let receiver = test_steam_id(2);
-        
+
         manager.add_player(sender);
         manager.add_player(receiver);
-        
+
         // Mute then unmute
-        manager.get_player_mut(receiver).unwrap().mute_player(sender);
-        manager.get_player_mut(receiver).unwrap().unmute_player(sender);
-        
-        let recipients = manager.send_message(
-            sender,
-            "Player1",
-            ChatChannel::Global,
-            "Hello"
-        ).unwrap();
-        
+        manager
+            .get_player_mut(receiver)
+            .unwrap()
+            .mute_player(sender);
+        manager
+            .get_player_mut(receiver)
+            .unwrap()
+            .unmute_player(sender);
+
+        let recipients = manager
+            .send_message(sender, "Player1", ChatChannel::Global, "Hello")
+            .unwrap();
+
         // Receiver should receive the message now
         assert!(recipients.contains(&receiver));
     }
@@ -736,17 +727,12 @@ mod tests {
         let mut manager = ChatManager::new(100);
         let player = test_steam_id(1);
         manager.add_player(player);
-        
+
         // Admin mutes player
         manager.admin_mute(player, None);
-        
-        let result = manager.send_message(
-            player,
-            "Player1",
-            ChatChannel::Global,
-            "Test"
-        );
-        
+
+        let result = manager.send_message(player, "Player1", ChatChannel::Global, "Test");
+
         assert_eq!(result, Err(ChatResult::Muted));
     }
 
@@ -755,17 +741,17 @@ mod tests {
         let mut manager = ChatManager::new(100);
         let player = test_steam_id(1);
         manager.add_player(player);
-        
+
         // Admin mutes player for 50ms
         manager.admin_mute(player, Some(Duration::from_millis(50)));
-        
+
         // Should be muted immediately
         let result = manager.send_message(player, "Player1", ChatChannel::Global, "Test");
         assert_eq!(result, Err(ChatResult::Muted));
-        
+
         // Wait for mute to expire
         sleep(Duration::from_millis(60));
-        
+
         // Should be able to send now
         let result = manager.send_message(player, "Player1", ChatChannel::Global, "Test");
         assert!(result.is_ok());
@@ -776,10 +762,10 @@ mod tests {
         let mut manager = ChatManager::new(100);
         let player = test_steam_id(1);
         manager.add_player(player);
-        
+
         manager.admin_mute(player, None);
         manager.admin_unmute(player);
-        
+
         let result = manager.send_message(player, "Player1", ChatChannel::Global, "Test");
         assert!(result.is_ok());
     }
@@ -793,11 +779,18 @@ mod tests {
         let mut manager = ChatManager::new(5);
         let sender = test_steam_id(1);
         manager.add_player(sender);
-        
+
         for i in 0..3 {
-            manager.send_message(sender, "Player1", ChatChannel::Global, &format!("Message {}", i)).unwrap();
+            manager
+                .send_message(
+                    sender,
+                    "Player1",
+                    ChatChannel::Global,
+                    &format!("Message {}", i),
+                )
+                .unwrap();
         }
-        
+
         let history = manager.get_history(10);
         assert_eq!(history.len(), 3);
     }
@@ -807,11 +800,18 @@ mod tests {
         let mut manager = ChatManager::new(3);
         let sender = test_steam_id(1);
         manager.add_player(sender);
-        
+
         for i in 0..5 {
-            manager.send_message(sender, "Player1", ChatChannel::Global, &format!("Message {}", i)).unwrap();
+            manager
+                .send_message(
+                    sender,
+                    "Player1",
+                    ChatChannel::Global,
+                    &format!("Message {}", i),
+                )
+                .unwrap();
         }
-        
+
         let history = manager.get_history(10);
         assert_eq!(history.len(), 3); // Limited to max_history
     }
@@ -824,7 +824,7 @@ mod tests {
     fn profanity_filter_basic() {
         let mut filter = ProfanityFilter::new();
         filter.add_word("bad");
-        
+
         let result = filter.filter("This is a bad word");
         assert_eq!(result, "This is a *** word");
     }
@@ -833,7 +833,7 @@ mod tests {
     fn profanity_filter_detection() {
         let mut filter = ProfanityFilter::new();
         filter.add_word("blocked");
-        
+
         assert!(filter.contains_blocked("This is blocked content"));
         assert!(!filter.contains_blocked("This is fine"));
     }

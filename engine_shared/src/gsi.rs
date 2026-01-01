@@ -26,7 +26,7 @@ use serde_json::Value;
 use crate::steam_id::SteamId;
 
 /// GSI Provider information.
-/// 
+///
 /// Reference: Counter-Strike: Global Offensive Game State Integration docs
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GsiProvider {
@@ -387,8 +387,8 @@ impl GsiReceiver {
 
     /// Process a received payload.
     pub fn process(&mut self, json: &str) -> Result<&GsiPayload, GsiError> {
-        let payload: GsiPayload = serde_json::from_str(json)
-            .map_err(|e| GsiError::ParseError(e.to_string()))?;
+        let payload: GsiPayload =
+            serde_json::from_str(json).map_err(|e| GsiError::ParseError(e.to_string()))?;
 
         // Validate auth token if required
         if let Some(ref expected) = self.expected_token {
@@ -441,7 +441,7 @@ mod tests {
     #[test]
     fn gsi_001_provider_block() {
         let provider = GsiProvider::new("Counter-Strike 2", 730, 14000, test_steam_id());
-        
+
         assert_eq!(provider.name, "Counter-Strike 2");
         assert_eq!(provider.appid, 730);
         assert_eq!(provider.version, 14000);
@@ -453,7 +453,7 @@ mod tests {
     fn gsi_001_provider_serialization() {
         let provider = GsiProvider::new("Test Game", 440, 1000, test_steam_id());
         let json = serde_json::to_string(&provider).unwrap();
-        
+
         assert!(json.contains("\"name\":\"Test Game\""));
         assert!(json.contains("\"appid\":440"));
     }
@@ -465,7 +465,7 @@ mod tests {
     #[test]
     fn gsi_002_map_block() {
         let map = GsiMap::new("de_dust2", GameMode::Competitive);
-        
+
         assert_eq!(map.name, "de_dust2");
         assert_eq!(map.mode, GameMode::Competitive);
         assert_eq!(map.phase, MapPhase::Warmup);
@@ -479,10 +479,10 @@ mod tests {
         map.team_t.score = 5;
         map.round = 16;
         map.phase = MapPhase::Live;
-        
+
         let json = serde_json::to_string(&map).unwrap();
         let parsed: GsiMap = serde_json::from_str(&json).unwrap();
-        
+
         assert_eq!(parsed.team_ct.score, 10);
         assert_eq!(parsed.team_t.score, 5);
         assert_eq!(parsed.round, 16);
@@ -495,7 +495,7 @@ mod tests {
     #[test]
     fn gsi_003_player_block() {
         let player = GsiPlayer::new(test_steam_id(), "TestPlayer", PlayerTeam::CT);
-        
+
         assert_eq!(player.name, "TestPlayer");
         assert_eq!(player.team, PlayerTeam::CT);
         assert_eq!(player.activity, PlayerActivity::Playing);
@@ -508,10 +508,10 @@ mod tests {
         player.state.armor = 100;
         player.state.helmet = true;
         player.state.money = 4750;
-        
+
         let json = serde_json::to_string(&player).unwrap();
         let parsed: GsiPlayer = serde_json::from_str(&json).unwrap();
-        
+
         assert_eq!(parsed.state.health, 100);
         assert_eq!(parsed.state.armor, 100);
         assert!(parsed.state.helmet);
@@ -529,10 +529,10 @@ mod tests {
             bomb: Some("planted".to_string()),
             win_team: None,
         };
-        
+
         let json = serde_json::to_string(&round).unwrap();
         let parsed: GsiRound = serde_json::from_str(&json).unwrap();
-        
+
         assert_eq!(parsed.phase, RoundPhase::Live);
         assert_eq!(parsed.bomb, Some("planted".to_string()));
     }
@@ -545,7 +545,7 @@ mod tests {
     fn gsi_009_auth_token() {
         let provider = GsiProvider::new("Test", 730, 1, test_steam_id());
         let payload = GsiPayload::new(provider).with_auth("secret_token_123");
-        
+
         assert!(payload.auth.is_some());
         assert_eq!(payload.auth.unwrap().token, "secret_token_123");
     }
@@ -553,22 +553,22 @@ mod tests {
     #[test]
     fn gsi_009_auth_validation() {
         let mut receiver = GsiReceiver::new(Some("correct_token".to_string()));
-        
+
         let provider = GsiProvider::new("Test", 730, 1, test_steam_id());
         let payload = GsiPayload::new(provider).with_auth("correct_token");
         let json = payload.to_json().unwrap();
-        
+
         assert!(receiver.process(&json).is_ok());
     }
 
     #[test]
     fn gsi_009_invalid_token_rejected() {
         let mut receiver = GsiReceiver::new(Some("correct_token".to_string()));
-        
+
         let provider = GsiProvider::new("Test", 730, 1, test_steam_id());
         let payload = GsiPayload::new(provider).with_auth("wrong_token");
         let json = payload.to_json().unwrap();
-        
+
         let result = receiver.process(&json);
         assert_eq!(result, Err(GsiError::InvalidToken));
     }
@@ -576,11 +576,11 @@ mod tests {
     #[test]
     fn gsi_009_missing_token_rejected() {
         let mut receiver = GsiReceiver::new(Some("expected_token".to_string()));
-        
+
         let provider = GsiProvider::new("Test", 730, 1, test_steam_id());
         let payload = GsiPayload::new(provider); // No auth
         let json = payload.to_json().unwrap();
-        
+
         let result = receiver.process(&json);
         assert_eq!(result, Err(GsiError::MissingToken));
     }
@@ -593,15 +593,15 @@ mod tests {
     fn gsi_010_full_payload_roundtrip() {
         let provider = GsiProvider::new("Counter-Strike 2", 730, 14000, test_steam_id());
         let mut payload = GsiPayload::new(provider);
-        
+
         payload.map = Some(GsiMap::new("de_dust2", GameMode::Competitive));
         payload.player = Some(GsiPlayer::new(test_steam_id(), "Player1", PlayerTeam::CT));
         payload.round = Some(GsiRound::default());
         payload = payload.with_auth("test_token");
-        
+
         let json = payload.to_json_pretty().unwrap();
         let parsed = GsiPayload::from_json(&json).unwrap();
-        
+
         assert_eq!(parsed.provider.appid, 730);
         assert!(parsed.map.is_some());
         assert!(parsed.player.is_some());
@@ -613,9 +613,9 @@ mod tests {
     fn gsi_010_minimal_payload() {
         let provider = GsiProvider::new("Test", 440, 1, test_steam_id());
         let payload = GsiPayload::new(provider);
-        
+
         let json = payload.to_json().unwrap();
-        
+
         // Should not contain optional fields
         assert!(!json.contains("\"map\""));
         assert!(!json.contains("\"player\""));
@@ -629,24 +629,24 @@ mod tests {
     #[test]
     fn receiver_counts_payloads() {
         let mut receiver = GsiReceiver::new(None);
-        
+
         for i in 0..5 {
             let provider = GsiProvider::new("Test", 730, i, test_steam_id());
             let payload = GsiPayload::new(provider);
             receiver.process(&payload.to_json().unwrap()).unwrap();
         }
-        
+
         assert_eq!(receiver.payload_count(), 5);
     }
 
     #[test]
     fn receiver_stores_last_payload() {
         let mut receiver = GsiReceiver::new(None);
-        
+
         let provider = GsiProvider::new("Test", 730, 100, test_steam_id());
         let payload = GsiPayload::new(provider);
         receiver.process(&payload.to_json().unwrap()).unwrap();
-        
+
         let last = receiver.last_payload().unwrap();
         assert_eq!(last.provider.version, 100);
     }
@@ -658,7 +658,7 @@ mod tests {
     #[test]
     fn default_config() {
         let config = GsiConfig::default();
-        
+
         assert!(config.uri.starts_with("http"));
         assert!(config.timeout.as_secs() > 0);
     }

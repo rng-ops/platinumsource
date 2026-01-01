@@ -4,7 +4,10 @@
 //! action bindings, and per-frame sampling. This scaffold focuses on producing
 //! deterministic per-tick `PlayerCommand` messages.
 
-use engine_shared::{math::Vec3, net::{ClientId, PlayerCommand}};
+use engine_shared::{
+    math::Vec3,
+    net::{ClientId, PlayerCommand},
+};
 
 /// User input state at a moment in time.
 #[derive(Debug, Clone, Copy, Default)]

@@ -28,7 +28,7 @@ use crate::steam_id::SteamId;
 pub const MAX_AUTH_TICKET_SIZE: usize = 1024;
 
 /// Auth session response codes.
-/// 
+///
 /// Reference: <https://partner.steamgames.com/doc/api/steam_api#EAuthSessionResponse>
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u8)]
@@ -113,7 +113,7 @@ impl AuthSessionResponse {
 }
 
 /// Handle for an active auth session ticket.
-/// 
+///
 /// Reference: <https://partner.steamgames.com/doc/api/ISteamUser#HAuthTicket>
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct AuthTicketHandle(u32);
@@ -135,7 +135,7 @@ impl AuthTicketHandle {
 }
 
 /// An authentication ticket for session validation.
-/// 
+///
 /// This represents the ticket data returned by `GetAuthSessionTicket()`.
 #[derive(Clone)]
 pub struct AuthTicket {
@@ -252,7 +252,7 @@ impl AuthSession {
 }
 
 /// Simulated auth ticket generator for testing.
-/// 
+///
 /// In production, this would interface with Steamworks SDK.
 pub struct MockAuthProvider {
     next_handle: u32,
@@ -284,7 +284,11 @@ impl MockAuthProvider {
     }
 
     /// Validate a ticket (mock implementation).
-    pub fn validate_ticket(&self, ticket: &AuthTicket, expected_owner: SteamId) -> AuthSessionResponse {
+    pub fn validate_ticket(
+        &self,
+        ticket: &AuthTicket,
+        expected_owner: SteamId,
+    ) -> AuthSessionResponse {
         // Check size
         if !ticket.is_valid_size() {
             return AuthSessionResponse::AuthTicketInvalid;
@@ -322,9 +326,9 @@ mod tests {
     fn auth_001_valid_ticket_generation() {
         let mut provider = MockAuthProvider::new(730); // CS:GO app ID
         let steam_id = SteamId::from_account_id(12345);
-        
+
         let ticket = provider.get_auth_ticket(steam_id);
-        
+
         assert!(ticket.handle.is_valid());
         assert!(ticket.is_valid_size());
         assert_eq!(ticket.owner, steam_id);
@@ -335,9 +339,9 @@ mod tests {
     fn auth_001_ticket_contains_owner_info() {
         let mut provider = MockAuthProvider::new(730);
         let steam_id = SteamId::from_account_id(12345);
-        
+
         let ticket = provider.get_auth_ticket(steam_id);
-        
+
         // Ticket data should embed the Steam ID
         let embedded_id = u64::from_le_bytes(ticket.data[4..12].try_into().unwrap());
         assert_eq!(embedded_id, steam_id.as_u64());
@@ -353,9 +357,9 @@ mod tests {
         let mut provider = MockAuthProvider::new(730);
         let real_owner = SteamId::from_account_id(12345);
         let fake_owner = SteamId::from_account_id(99999);
-        
+
         let ticket = provider.get_auth_ticket(real_owner);
-        
+
         // Validate with wrong owner
         let response = provider.validate_ticket(&ticket, fake_owner);
         assert_eq!(response, AuthSessionResponse::AuthTicketInvalid);
@@ -365,7 +369,7 @@ mod tests {
     fn auth_002_invalid_handle_rejected() {
         let provider = MockAuthProvider::new(730);
         let steam_id = SteamId::from_account_id(12345);
-        
+
         let ticket = AuthTicket {
             handle: AuthTicketHandle::INVALID,
             data: vec![0; 64],
@@ -373,7 +377,7 @@ mod tests {
             created_at: Instant::now(),
             app_id: 730,
         };
-        
+
         let response = provider.validate_ticket(&ticket, steam_id);
         assert_eq!(response, AuthSessionResponse::AuthTicketInvalid);
     }
@@ -387,9 +391,9 @@ mod tests {
     fn auth_004_ticket_size_within_limits() {
         let mut provider = MockAuthProvider::new(730);
         let steam_id = SteamId::from_account_id(12345);
-        
+
         let ticket = provider.get_auth_ticket(steam_id);
-        
+
         assert!(ticket.data.len() <= MAX_AUTH_TICKET_SIZE);
         assert!(!ticket.data.is_empty());
     }
@@ -398,10 +402,10 @@ mod tests {
     fn auth_004_unique_handles() {
         let mut provider = MockAuthProvider::new(730);
         let steam_id = SteamId::from_account_id(12345);
-        
+
         let ticket1 = provider.get_auth_ticket(steam_id);
         let ticket2 = provider.get_auth_ticket(steam_id);
-        
+
         assert_ne!(ticket1.handle.as_u32(), ticket2.handle.as_u32());
     }
 
@@ -414,10 +418,10 @@ mod tests {
     fn auth_005_valid_ticket_accepted() {
         let mut provider = MockAuthProvider::new(730);
         let steam_id = SteamId::from_account_id(12345);
-        
+
         let ticket = provider.get_auth_ticket(steam_id);
         let response = provider.validate_ticket(&ticket, steam_id);
-        
+
         assert_eq!(response, AuthSessionResponse::Ok);
         assert!(response.is_success());
     }
@@ -426,10 +430,10 @@ mod tests {
     fn auth_005_wrong_app_rejected() {
         let mut provider = MockAuthProvider::new(730);
         let steam_id = SteamId::from_account_id(12345);
-        
+
         let mut ticket = provider.get_auth_ticket(steam_id);
         ticket.app_id = 440; // Wrong app ID
-        
+
         let response = provider.validate_ticket(&ticket, steam_id);
         assert_eq!(response, AuthSessionResponse::NoLicenseOrExpired);
     }
@@ -442,10 +446,10 @@ mod tests {
     fn auth_007_session_timeout_recovery() {
         let steam_id = SteamId::from_account_id(12345);
         let mut session = AuthSession::new(steam_id);
-        
+
         session.begin_validation();
         session.on_validation_response(AuthSessionResponse::VACCheckTimedOut);
-        
+
         assert!(session.should_retry());
         assert!(session.last_response.unwrap().is_recoverable());
     }
@@ -454,13 +458,13 @@ mod tests {
     fn auth_007_max_retry_limit() {
         let steam_id = SteamId::from_account_id(12345);
         let mut session = AuthSession::new(steam_id);
-        
+
         // Simulate 3 failed attempts
         for _ in 0..3 {
             session.begin_validation();
             session.on_validation_response(AuthSessionResponse::VACCheckTimedOut);
         }
-        
+
         assert!(!session.should_retry()); // No more retries after 3
     }
 
@@ -473,12 +477,12 @@ mod tests {
     fn auth_009_response_state_transitions() {
         let steam_id = SteamId::from_account_id(12345);
         let mut session = AuthSession::new(steam_id);
-        
+
         assert_eq!(session.state, AuthSessionState::None);
-        
+
         session.begin_validation();
         assert_eq!(session.state, AuthSessionState::Pending);
-        
+
         session.on_validation_response(AuthSessionResponse::Ok);
         assert_eq!(session.state, AuthSessionState::Validated);
         assert!(session.is_valid());
@@ -488,10 +492,10 @@ mod tests {
     fn auth_009_failed_response_handling() {
         let steam_id = SteamId::from_account_id(12345);
         let mut session = AuthSession::new(steam_id);
-        
+
         session.begin_validation();
         session.on_validation_response(AuthSessionResponse::VACBanned);
-        
+
         assert_eq!(session.state, AuthSessionState::Failed);
         assert!(!session.is_valid());
         assert!(session.last_response.unwrap().is_permanent_rejection());
@@ -516,7 +520,7 @@ mod tests {
             AuthSessionResponse::AuthTicketInvalid,
             AuthSessionResponse::PublisherIssuedBan,
         ];
-        
+
         for response in responses {
             assert!(!response.message().is_empty());
         }
@@ -526,11 +530,11 @@ mod tests {
     fn response_code_classification() {
         assert!(AuthSessionResponse::Ok.is_success());
         assert!(!AuthSessionResponse::VACBanned.is_success());
-        
+
         assert!(AuthSessionResponse::VACBanned.is_permanent_rejection());
         assert!(AuthSessionResponse::PublisherIssuedBan.is_permanent_rejection());
         assert!(!AuthSessionResponse::VACCheckTimedOut.is_permanent_rejection());
-        
+
         assert!(AuthSessionResponse::VACCheckTimedOut.is_recoverable());
         assert!(AuthSessionResponse::LoggedInElsewhere.is_recoverable());
         assert!(!AuthSessionResponse::VACBanned.is_recoverable());

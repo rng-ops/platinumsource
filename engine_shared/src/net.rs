@@ -41,16 +41,24 @@ impl ClientId {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum NetMsg {
     // ─── Connection handshake ───
-    Hello { protocol: u32 },
+    Hello {
+        protocol: u32,
+    },
     /// Client announces its UDP port to the server.
-    UdpHello { client_udp_port: u16 },
-    Welcome { client_id: ClientId },
+    UdpHello {
+        client_udp_port: u16,
+    },
+    Welcome {
+        client_id: ClientId,
+    },
 
     // ─── Map loading ───
     /// Server tells client which map to load.
     MapInfo(MapInfo),
     /// Client confirms map is loaded and ready.
-    ClientReady { client_id: ClientId },
+    ClientReady {
+        client_id: ClientId,
+    },
 
     // ─── Entity replication ───
     /// Server spawns an entity on the client.
@@ -58,7 +66,9 @@ pub enum NetMsg {
     /// Server updates entity state (delta or full).
     EntityUpdate(EntityState),
     /// Server removes an entity.
-    EntityDelete { id: EntityId },
+    EntityDelete {
+        id: EntityId,
+    },
 
     // ─── Gameplay ───
     /// Client -> server: input commands for a given tick.
@@ -68,12 +78,18 @@ pub enum NetMsg {
 
     // ─── Console/chat ───
     /// Server -> client: print message to console.
-    ServerPrint { message: String },
+    ServerPrint {
+        message: String,
+    },
     /// Client -> server: console command (e.g., "say hello").
-    ClientCommand { command: String },
+    ClientCommand {
+        command: String,
+    },
 
     // ─── Disconnect ───
-    Disconnect { reason: String },
+    Disconnect {
+        reason: String,
+    },
 }
 
 /// Map information sent to clients.
@@ -142,7 +158,10 @@ impl ReliableConn {
 
     pub async fn recv(&mut self) -> anyhow::Result<NetMsg> {
         let mut len_buf = [0u8; 4];
-        self.stream.read_exact(&mut len_buf).await.context("tcp read len")?;
+        self.stream
+            .read_exact(&mut len_buf)
+            .await
+            .context("tcp read len")?;
         let len = u32::from_be_bytes(len_buf) as usize;
         let mut payload = vec![0u8; len];
         self.stream
@@ -186,7 +205,10 @@ impl UnreliableConn {
     }
 
     /// Receives a datagram within the given timeout.
-    pub async fn recv_timeout(&self, timeout: std::time::Duration) -> anyhow::Result<Option<NetMsg>> {
+    pub async fn recv_timeout(
+        &self,
+        timeout: std::time::Duration,
+    ) -> anyhow::Result<Option<NetMsg>> {
         let mut buf = vec![0u8; 64 * 1024];
         match time::timeout(timeout, self.socket.recv(&mut buf)).await {
             Ok(Ok(n)) => {

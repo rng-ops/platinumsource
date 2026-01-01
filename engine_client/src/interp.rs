@@ -5,7 +5,10 @@
 
 use std::collections::VecDeque;
 
-use engine_shared::{math::Vec3, net::{EntityState, Snapshot}};
+use engine_shared::{
+    math::Vec3,
+    net::{EntityState, Snapshot},
+};
 
 /// Buffered snapshot history for interpolation.
 #[derive(Default)]
@@ -49,8 +52,16 @@ impl SnapshotBuffer {
         let a = &self.history[self.history.len() - 2];
         let b = &self.history[self.history.len() - 1];
 
-        let pa = a.entities.iter().find(|e| e.id == entity).map(|e| e.position);
-        let pb = b.entities.iter().find(|e| e.id == entity).map(|e| e.position);
+        let pa = a
+            .entities
+            .iter()
+            .find(|e| e.id == entity)
+            .map(|e| e.position);
+        let pb = b
+            .entities
+            .iter()
+            .find(|e| e.id == entity)
+            .map(|e| e.position);
         match (pa, pb) {
             (Some(pa), Some(pb)) => Some(pa.lerp(pb, alpha)),
             _ => None,
@@ -63,6 +74,9 @@ impl SnapshotBuffer {
 }
 
 /// Convenience: find entity state in a snapshot.
-pub fn find_entity<'a>(snap: &'a Snapshot, id: engine_shared::ecs::EntityId) -> Option<&'a EntityState> {
+pub fn find_entity<'a>(
+    snap: &'a Snapshot,
+    id: engine_shared::ecs::EntityId,
+) -> Option<&'a EntityState> {
     snap.entities.iter().find(|e| e.id == id)
 }

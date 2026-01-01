@@ -26,7 +26,7 @@ use serde::{Deserialize, Serialize};
 use crate::steam_id::SteamId;
 
 /// Lobby type/visibility.
-/// 
+///
 /// Reference: <https://partner.steamgames.com/doc/api/ISteamMatchmaking#ELobbyType>
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum LobbyType {
@@ -58,7 +58,7 @@ impl LobbyType {
 }
 
 /// Lobby comparison types for filtering.
-/// 
+///
 /// Reference: <https://partner.steamgames.com/doc/api/ISteamMatchmaking#ELobbyComparison>
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LobbyComparison {
@@ -71,7 +71,7 @@ pub enum LobbyComparison {
 }
 
 /// Lobby distance filter.
-/// 
+///
 /// Reference: <https://partner.steamgames.com/doc/api/ISteamMatchmaking#ELobbyDistanceFilter>
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum LobbyDistanceFilter {
@@ -122,7 +122,7 @@ impl LobbyMember {
 }
 
 /// Game server information attached to a lobby.
-/// 
+///
 /// Reference: <https://partner.steamgames.com/doc/api/ISteamMatchmaking#SetLobbyGameServer>
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LobbyGameServer {
@@ -218,7 +218,7 @@ impl Lobby {
     pub fn remove_member(&mut self, steam_id: SteamId) -> Result<(), LobbyError> {
         let initial_len = self.members.len();
         self.members.retain(|m| m.steam_id != steam_id);
-        
+
         if self.members.len() == initial_len {
             return Err(LobbyError::NotMember);
         }
@@ -252,19 +252,25 @@ impl Lobby {
     }
 
     /// Set member data.
-    pub fn set_member_data(&mut self, steam_id: SteamId, key: &str, value: &str) -> Result<(), LobbyError> {
+    pub fn set_member_data(
+        &mut self,
+        steam_id: SteamId,
+        key: &str,
+        value: &str,
+    ) -> Result<(), LobbyError> {
         if key.len() > MAX_LOBBY_KEY_LENGTH {
             return Err(LobbyError::KeyTooLong);
         }
         if value.len() > MAX_LOBBY_VALUE_LENGTH {
             return Err(LobbyError::ValueTooLong);
         }
-        
-        let member = self.members
+
+        let member = self
+            .members
             .iter_mut()
             .find(|m| m.steam_id == steam_id)
             .ok_or(LobbyError::NotMember)?;
-        
+
         member.data.insert(key.to_string(), value.to_string());
         Ok(())
     }
@@ -279,7 +285,11 @@ impl Lobby {
 
     /// Set game server.
     pub fn set_game_server(&mut self, ip: u32, port: u16, server_id: Option<SteamId>) {
-        self.game_server = Some(LobbyGameServer { ip, port, server_id });
+        self.game_server = Some(LobbyGameServer {
+            ip,
+            port,
+            server_id,
+        });
     }
 
     /// Set member limit.
@@ -332,14 +342,26 @@ impl LobbySearchFilter {
     }
 
     /// Add a string filter.
-    pub fn with_string_filter(mut self, key: &str, value: &str, comparison: LobbyComparison) -> Self {
-        self.string_filters.push((key.to_string(), value.to_string(), comparison));
+    pub fn with_string_filter(
+        mut self,
+        key: &str,
+        value: &str,
+        comparison: LobbyComparison,
+    ) -> Self {
+        self.string_filters
+            .push((key.to_string(), value.to_string(), comparison));
         self
     }
 
     /// Add a numeric filter.
-    pub fn with_numeric_filter(mut self, key: &str, value: i32, comparison: LobbyComparison) -> Self {
-        self.numeric_filters.push((key.to_string(), value, comparison));
+    pub fn with_numeric_filter(
+        mut self,
+        key: &str,
+        value: i32,
+        comparison: LobbyComparison,
+    ) -> Self {
+        self.numeric_filters
+            .push((key.to_string(), value, comparison));
         self
     }
 
@@ -389,7 +411,7 @@ impl LobbySearchFilter {
                 .get_data(key)
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(0);
-            
+
             let matches = match comparison {
                 LobbyComparison::Equal => actual == *expected,
                 LobbyComparison::NotEqual => actual != *expected,
@@ -454,12 +476,11 @@ impl LobbyManager {
 
     /// Search for lobbies matching a filter.
     pub fn search(&self, filter: &LobbySearchFilter) -> Vec<&Lobby> {
-        let mut results: Vec<_> = self.lobbies
+        let mut results: Vec<_> = self
+            .lobbies
             .values()
             .filter(|lobby| {
-                lobby.lobby_type.is_searchable()
-                    && lobby.joinable
-                    && filter.matches(lobby)
+                lobby.lobby_type.is_searchable() && lobby.joinable && filter.matches(lobby)
             })
             .collect();
 
@@ -503,9 +524,9 @@ mod tests {
     fn lob_001_create_public_lobby() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         assert!(lobby_id.is_valid());
         let lobby = manager.get_lobby(lobby_id).unwrap();
         assert_eq!(lobby.lobby_type, LobbyType::Public);
@@ -522,9 +543,9 @@ mod tests {
     fn lob_002_create_private_lobby() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Private, 4);
-        
+
         let lobby = manager.get_lobby(lobby_id).unwrap();
         assert_eq!(lobby.lobby_type, LobbyType::Private);
         assert!(!lobby.lobby_type.is_searchable());
@@ -538,9 +559,9 @@ mod tests {
     fn lob_003_create_friends_only_lobby() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::FriendsOnly, 4);
-        
+
         let lobby = manager.get_lobby(lobby_id).unwrap();
         assert_eq!(lobby.lobby_type, LobbyType::FriendsOnly);
         assert!(lobby.lobby_type.is_searchable());
@@ -554,9 +575,9 @@ mod tests {
     fn lob_004_create_invisible_lobby() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Invisible, 2);
-        
+
         let lobby = manager.get_lobby(lobby_id).unwrap();
         assert_eq!(lobby.lobby_type, LobbyType::Invisible);
         assert!(!lobby.lobby_type.is_searchable());
@@ -572,12 +593,12 @@ mod tests {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
         let joiner = test_steam_id(67890);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         lobby.add_member(joiner).unwrap();
-        
+
         assert_eq!(lobby.member_count(), 2);
         assert!(lobby.is_member(joiner));
     }
@@ -586,12 +607,12 @@ mod tests {
     fn lob_005_join_full_lobby_fails() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(1);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 2);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         lobby.add_member(test_steam_id(2)).unwrap();
-        
+
         // Third member should fail
         let result = lobby.add_member(test_steam_id(3));
         assert_eq!(result, Err(LobbyError::LobbyFull));
@@ -607,13 +628,13 @@ mod tests {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
         let member = test_steam_id(67890);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         lobby.add_member(member).unwrap();
         lobby.remove_member(member).unwrap();
-        
+
         assert_eq!(lobby.member_count(), 1);
         assert!(!lobby.is_member(member));
     }
@@ -627,12 +648,12 @@ mod tests {
     fn lob_007_set_member_limit() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         lobby.set_member_limit(16).unwrap();
-        
+
         assert_eq!(lobby.max_members, 16);
     }
 
@@ -640,13 +661,13 @@ mod tests {
     fn lob_007_limit_below_members_fails() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         lobby.add_member(test_steam_id(2)).unwrap();
         lobby.add_member(test_steam_id(3)).unwrap();
-        
+
         // Can't set limit below current count
         let result = lobby.set_member_limit(2);
         assert_eq!(result, Err(LobbyError::LimitTooLow));
@@ -662,13 +683,13 @@ mod tests {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
         let member = test_steam_id(67890);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         lobby.add_member(member).unwrap();
         lobby.remove_member(owner).unwrap();
-        
+
         // New owner should be the remaining member
         assert_eq!(lobby.owner, member);
     }
@@ -678,13 +699,13 @@ mod tests {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
         let member = test_steam_id(67890);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         lobby.add_member(member).unwrap();
         lobby.set_owner(member).unwrap();
-        
+
         assert_eq!(lobby.owner, member);
     }
 
@@ -696,14 +717,18 @@ mod tests {
     fn lob_009_cleanup_empty_lobbies() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         // Remove owner (last member)
-        manager.get_lobby_mut(lobby_id).unwrap().remove_member(owner).unwrap();
-        
+        manager
+            .get_lobby_mut(lobby_id)
+            .unwrap()
+            .remove_member(owner)
+            .unwrap();
+
         manager.cleanup_empty();
-        
+
         assert!(manager.get_lobby(lobby_id).is_none());
     }
 
@@ -715,15 +740,15 @@ mod tests {
     #[test]
     fn lob_010_basic_search() {
         let mut manager = LobbyManager::new();
-        
+
         // Create some lobbies
         manager.create_lobby(test_steam_id(1), LobbyType::Public, 8);
         manager.create_lobby(test_steam_id(2), LobbyType::Private, 4);
         manager.create_lobby(test_steam_id(3), LobbyType::Public, 8);
-        
+
         let filter = LobbySearchFilter::new();
         let results = manager.search(&filter);
-        
+
         // Should only return public lobbies
         assert_eq!(results.len(), 2);
     }
@@ -737,13 +762,13 @@ mod tests {
     fn lob_data_001_set_lobby_data() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         lobby.set_data("map", "de_dust2").unwrap();
         lobby.set_data("gamemode", "competitive").unwrap();
-        
+
         assert_eq!(lobby.get_data("map"), Some("de_dust2"));
         assert_eq!(lobby.get_data("gamemode"), Some("competitive"));
     }
@@ -756,12 +781,12 @@ mod tests {
     fn lob_data_003_key_length_limit() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         let long_key = "k".repeat(MAX_LOBBY_KEY_LENGTH + 1);
-        
+
         let result = lobby.set_data(&long_key, "value");
         assert_eq!(result, Err(LobbyError::KeyTooLong));
     }
@@ -770,12 +795,12 @@ mod tests {
     fn lob_data_003_value_length_limit() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         let long_value = "v".repeat(MAX_LOBBY_VALUE_LENGTH + 1);
-        
+
         let result = lobby.set_data("key", &long_value);
         assert_eq!(result, Err(LobbyError::ValueTooLong));
     }
@@ -788,12 +813,12 @@ mod tests {
     fn lob_data_004_member_data() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         lobby.set_member_data(owner, "ready", "true").unwrap();
-        
+
         assert_eq!(lobby.get_member_data(owner, "ready"), Some("true"));
     }
 
@@ -806,12 +831,12 @@ mod tests {
     fn lob_data_006_game_server_info() {
         let mut manager = LobbyManager::new();
         let owner = test_steam_id(12345);
-        
+
         let lobby_id = manager.create_lobby(owner, LobbyType::Public, 8);
-        
+
         let lobby = manager.get_lobby_mut(lobby_id).unwrap();
         lobby.set_game_server(0x7F000001, 27015, None); // 127.0.0.1:27015
-        
+
         let gs = lobby.game_server.as_ref().unwrap();
         assert_eq!(gs.ip, 0x7F000001);
         assert_eq!(gs.port, 27015);
@@ -824,14 +849,14 @@ mod tests {
     #[test]
     fn filter_by_slots_available() {
         let mut manager = LobbyManager::new();
-        
+
         // Create a lobby with 8 slots, 1 member
         let lobby_id = manager.create_lobby(test_steam_id(1), LobbyType::Public, 8);
-        
+
         // Search for lobbies with at least 5 slots
         let filter = LobbySearchFilter::new().with_slots_available(5);
         let results = manager.search(&filter);
-        
+
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].available_slots(), 7);
     }
@@ -839,16 +864,24 @@ mod tests {
     #[test]
     fn filter_by_string_data() {
         let mut manager = LobbyManager::new();
-        
+
         let lobby_id1 = manager.create_lobby(test_steam_id(1), LobbyType::Public, 8);
         let lobby_id2 = manager.create_lobby(test_steam_id(2), LobbyType::Public, 8);
-        
-        manager.get_lobby_mut(lobby_id1).unwrap().set_data("map", "de_dust2").unwrap();
-        manager.get_lobby_mut(lobby_id2).unwrap().set_data("map", "cs_office").unwrap();
-        
-        let filter = LobbySearchFilter::new()
-            .with_string_filter("map", "de_dust2", LobbyComparison::Equal);
-        
+
+        manager
+            .get_lobby_mut(lobby_id1)
+            .unwrap()
+            .set_data("map", "de_dust2")
+            .unwrap();
+        manager
+            .get_lobby_mut(lobby_id2)
+            .unwrap()
+            .set_data("map", "cs_office")
+            .unwrap();
+
+        let filter =
+            LobbySearchFilter::new().with_string_filter("map", "de_dust2", LobbyComparison::Equal);
+
         let results = manager.search(&filter);
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].get_data("map"), Some("de_dust2"));
@@ -857,16 +890,27 @@ mod tests {
     #[test]
     fn filter_by_numeric_data() {
         let mut manager = LobbyManager::new();
-        
+
         let lobby_id1 = manager.create_lobby(test_steam_id(1), LobbyType::Public, 8);
         let lobby_id2 = manager.create_lobby(test_steam_id(2), LobbyType::Public, 8);
-        
-        manager.get_lobby_mut(lobby_id1).unwrap().set_data("skill", "1000").unwrap();
-        manager.get_lobby_mut(lobby_id2).unwrap().set_data("skill", "2000").unwrap();
-        
-        let filter = LobbySearchFilter::new()
-            .with_numeric_filter("skill", 1500, LobbyComparison::GreaterThan);
-        
+
+        manager
+            .get_lobby_mut(lobby_id1)
+            .unwrap()
+            .set_data("skill", "1000")
+            .unwrap();
+        manager
+            .get_lobby_mut(lobby_id2)
+            .unwrap()
+            .set_data("skill", "2000")
+            .unwrap();
+
+        let filter = LobbySearchFilter::new().with_numeric_filter(
+            "skill",
+            1500,
+            LobbyComparison::GreaterThan,
+        );
+
         let results = manager.search(&filter);
         assert_eq!(results.len(), 1);
     }
@@ -874,14 +918,14 @@ mod tests {
     #[test]
     fn filter_max_results() {
         let mut manager = LobbyManager::new();
-        
+
         for i in 0..10 {
             manager.create_lobby(test_steam_id(i), LobbyType::Public, 8);
         }
-        
+
         let filter = LobbySearchFilter::new().with_max_results(3);
         let results = manager.search(&filter);
-        
+
         assert_eq!(results.len(), 3);
     }
 }

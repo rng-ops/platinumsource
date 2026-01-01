@@ -17,8 +17,8 @@ use engine_shared::{
     config::EngineConfig,
     console::{Console, CvarFlags, CvarValue},
     net::{
-        ClientId, EntitySpawn, MapInfo, NetMsg, PlayerCommand, ReliableConn,
-        UnreliableConn, PROTOCOL_VERSION,
+        ClientId, EntitySpawn, MapInfo, NetMsg, PlayerCommand, ReliableConn, UnreliableConn,
+        PROTOCOL_VERSION,
     },
 };
 use tokio::net::TcpStream;
@@ -81,7 +81,9 @@ impl GameClient {
         let unreliable = UnreliableConn::connect(bind, server_addr).await?;
         let client_udp_port = unreliable.local_addr().context("udp local_addr")?.port();
 
-        let stream = TcpStream::connect(server_addr).await.context("tcp connect")?;
+        let stream = TcpStream::connect(server_addr)
+            .await
+            .context("tcp connect")?;
         let mut reliable = ReliableConn::new(stream);
 
         reliable
@@ -90,9 +92,7 @@ impl GameClient {
             })
             .await?;
 
-        reliable
-            .send(&NetMsg::UdpHello { client_udp_port })
-            .await?;
+        reliable.send(&NetMsg::UdpHello { client_udp_port }).await?;
 
         let welcome = reliable.recv().await?;
         let client_id = match welcome {
@@ -127,19 +127,30 @@ impl GameClient {
     }
 
     fn register_cvars(console: &mut Console) {
-        console.register_cvar("cl_interp", CvarValue::Float(0.1), "Interpolation delay", CvarFlags::NONE);
-        console.register_cvar("cl_predict", CvarValue::Bool(true), "Enable client prediction", CvarFlags::NONE);
-        console.register_cvar("name", CvarValue::String("Player".to_string()), "Player name", CvarFlags::NONE);
+        console.register_cvar(
+            "cl_interp",
+            CvarValue::Float(0.1),
+            "Interpolation delay",
+            CvarFlags::NONE,
+        );
+        console.register_cvar(
+            "cl_predict",
+            CvarValue::Bool(true),
+            "Enable client prediction",
+            CvarFlags::NONE,
+        );
+        console.register_cvar(
+            "name",
+            CvarValue::String("Player".to_string()),
+            "Player name",
+            CvarFlags::NONE,
+        );
     }
 
     /// Polls the reliable connection for messages.
     pub async fn poll_reliable(&mut self) -> anyhow::Result<()> {
         // Use a short timeout to avoid blocking.
-        match tokio::time::timeout(
-            std::time::Duration::from_millis(10),
-            self.reliable.recv(),
-        )
-        .await
+        match tokio::time::timeout(std::time::Duration::from_millis(10), self.reliable.recv()).await
         {
             Ok(Ok(msg)) => {
                 self.handle_reliable_message(msg).await?;

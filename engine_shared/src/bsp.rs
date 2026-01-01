@@ -153,7 +153,10 @@ impl BspEntity {
     /// Parses the "origin" property as Vec3.
     pub fn origin(&self) -> Option<Vec3> {
         let s = self.get("origin")?;
-        let parts: Vec<f32> = s.split_whitespace().filter_map(|p| p.parse().ok()).collect();
+        let parts: Vec<f32> = s
+            .split_whitespace()
+            .filter_map(|p| p.parse().ok())
+            .collect();
         if parts.len() == 3 {
             Some(Vec3::new(parts[0], parts[1], parts[2]))
         } else {
@@ -164,7 +167,10 @@ impl BspEntity {
     /// Parses the "angles" property as Vec3 (pitch, yaw, roll).
     pub fn angles(&self) -> Option<Vec3> {
         let s = self.get("angles")?;
-        let parts: Vec<f32> = s.split_whitespace().filter_map(|p| p.parse().ok()).collect();
+        let parts: Vec<f32> = s
+            .split_whitespace()
+            .filter_map(|p| p.parse().ok())
+            .collect();
         if parts.len() == 3 {
             Some(Vec3::new(parts[0], parts[1], parts[2]))
         } else {
@@ -253,7 +259,11 @@ impl BspMap {
         })
     }
 
-    fn read_lump<R: Read + Seek>(r: &mut R, header: &BspHeader, idx: LumpIndex) -> anyhow::Result<Vec<u8>> {
+    fn read_lump<R: Read + Seek>(
+        r: &mut R,
+        header: &BspHeader,
+        idx: LumpIndex,
+    ) -> anyhow::Result<Vec<u8>> {
         let lump = &header.lumps[idx as usize];
         if lump.length == 0 {
             return Ok(Vec::new());
@@ -264,7 +274,10 @@ impl BspMap {
         Ok(data)
     }
 
-    fn read_entities<R: Read + Seek>(r: &mut R, header: &BspHeader) -> anyhow::Result<Vec<BspEntity>> {
+    fn read_entities<R: Read + Seek>(
+        r: &mut R,
+        header: &BspHeader,
+    ) -> anyhow::Result<Vec<BspEntity>> {
         let data = Self::read_lump(r, header, LumpIndex::Entities)?;
         let text = String::from_utf8_lossy(&data);
         parse_entity_lump(&text)
@@ -284,7 +297,11 @@ impl BspMap {
             );
             let dist = read_f32_slice(&data[off + 12..])?;
             let plane_type = read_i32_slice(&data[off + 16..])?;
-            planes.push(Plane { normal, dist, plane_type });
+            planes.push(Plane {
+                normal,
+                dist,
+                plane_type,
+            });
         }
         Ok(planes)
     }
@@ -380,7 +397,10 @@ impl BspMap {
         Ok(brushes)
     }
 
-    fn read_brush_sides<R: Read + Seek>(r: &mut R, header: &BspHeader) -> anyhow::Result<Vec<BrushSide>> {
+    fn read_brush_sides<R: Read + Seek>(
+        r: &mut R,
+        header: &BspHeader,
+    ) -> anyhow::Result<Vec<BrushSide>> {
         let data = Self::read_lump(r, header, LumpIndex::BrushSides)?;
         const SIZE: usize = 8;
         let count = data.len() / SIZE;
@@ -433,10 +453,7 @@ impl BspMap {
     pub fn spawn_points(&self) -> Vec<Vec3> {
         self.entities
             .iter()
-            .filter(|e| {
-                e.classname.starts_with("info_player")
-                    || e.classname == "info_target"
-            })
+            .filter(|e| e.classname.starts_with("info_player") || e.classname == "info_target")
             .filter_map(|e| e.origin())
             .collect()
     }
@@ -482,7 +499,7 @@ fn parse_entity_lump(text: &str) -> anyhow::Result<Vec<BspEntity>> {
 fn parse_kv_line(line: &str) -> Option<(&str, &str)> {
     // Parse "key" "value" format
     let mut chars = line.char_indices();
-    
+
     // Find first quote
     let key_start = loop {
         match chars.next() {
@@ -491,7 +508,7 @@ fn parse_kv_line(line: &str) -> Option<(&str, &str)> {
             None => return None,
         }
     };
-    
+
     // Find end of key (next quote)
     let key_end = loop {
         match chars.next() {
@@ -500,7 +517,7 @@ fn parse_kv_line(line: &str) -> Option<(&str, &str)> {
             None => return None,
         }
     };
-    
+
     // Find start of value (next quote)
     let value_start = loop {
         match chars.next() {
@@ -509,7 +526,7 @@ fn parse_kv_line(line: &str) -> Option<(&str, &str)> {
             None => return None,
         }
     };
-    
+
     // Find end of value (next quote)
     let value_end = loop {
         match chars.next() {
@@ -518,7 +535,7 @@ fn parse_kv_line(line: &str) -> Option<(&str, &str)> {
             None => return None,
         }
     };
-    
+
     Some((&line[key_start..key_end], &line[value_start..value_end]))
 }
 

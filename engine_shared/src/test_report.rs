@@ -263,9 +263,7 @@ impl TestReport {
     pub fn results_by_category(&self) -> HashMap<String, Vec<&TestResult>> {
         let mut map: HashMap<String, Vec<&TestResult>> = HashMap::new();
         for result in &self.results {
-            map.entry(result.category.clone())
-                .or_default()
-                .push(result);
+            map.entry(result.category.clone()).or_default().push(result);
         }
         map
     }
@@ -578,9 +576,18 @@ impl TestReport {
             self.title,
             self.subtitle,
             chrono_format(self.timestamp),
-            self.git_commit.as_ref().map(|c| format!("<span>Commit: {}</span>", &c[..7.min(c.len())])).unwrap_or_default(),
-            self.git_branch.as_ref().map(|b| format!("<span>Branch: {}</span>", b)).unwrap_or_default(),
-            self.build_number.as_ref().map(|n| format!("<span>Build: {}</span>", n)).unwrap_or_default(),
+            self.git_commit
+                .as_ref()
+                .map(|c| format!("<span>Commit: {}</span>", &c[..7.min(c.len())]))
+                .unwrap_or_default(),
+            self.git_branch
+                .as_ref()
+                .map(|b| format!("<span>Branch: {}</span>", b))
+                .unwrap_or_default(),
+            self.build_number
+                .as_ref()
+                .map(|n| format!("<span>Build: {}</span>", n))
+                .unwrap_or_default(),
         )
     }
 
@@ -666,9 +673,18 @@ impl TestReport {
         categories.sort_by(|a, b| a.0.cmp(b.0));
 
         for (category, results) in categories {
-            let passed = results.iter().filter(|r| r.status == TestStatus::Passed).count();
-            let failed = results.iter().filter(|r| r.status == TestStatus::Failed).count();
-            let skipped = results.iter().filter(|r| r.status == TestStatus::Skipped).count();
+            let passed = results
+                .iter()
+                .filter(|r| r.status == TestStatus::Passed)
+                .count();
+            let failed = results
+                .iter()
+                .filter(|r| r.status == TestStatus::Failed)
+                .count();
+            let skipped = results
+                .iter()
+                .filter(|r| r.status == TestStatus::Skipped)
+                .count();
 
             html.push_str(&format!(
                 r#"
@@ -715,9 +731,14 @@ impl TestReport {
             result.id,
             result.name,
             result.description,
-            result.doc_reference.as_ref().map(|url| 
-                format!(r#"<a href="{}" class="doc-link" target="_blank">📖 Valve Docs</a>"#, url)
-            ).unwrap_or_default(),
+            result
+                .doc_reference
+                .as_ref()
+                .map(|url| format!(
+                    r#"<a href="{}" class="doc-link" target="_blank">📖 Valve Docs</a>"#,
+                    url
+                ))
+                .unwrap_or_default(),
             result.priority.css_class(),
             result.priority.label(),
             result.duration.as_secs_f64() * 1000.0,
@@ -766,13 +787,13 @@ fn chrono_format(timestamp: u64) -> String {
     let hours = remaining / 3600;
     let minutes = (remaining % 3600) / 60;
     let seconds = remaining % 60;
-    
+
     // Approximate date (not accurate but works for display)
     let years = 1970 + (days_since_epoch / 365);
     let days = days_since_epoch % 365;
     let month = (days / 30) + 1;
     let day = (days % 30) + 1;
-    
+
     format!(
         "{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC",
         years, month, day, hours, minutes, seconds
@@ -813,7 +834,9 @@ impl ReportBuilder {
     }
 
     pub fn metadata(mut self, key: &str, value: &str) -> Self {
-        self.report.metadata.insert(key.to_string(), value.to_string());
+        self.report
+            .metadata
+            .insert(key.to_string(), value.to_string());
         self
     }
 
@@ -835,20 +858,26 @@ mod tests {
     fn test_report_generation() {
         let report = ReportBuilder::new("Steam ID Tests")
             .subtitle("Source Engine Parity Suite")
-            .add(TestResult::new("SID-001", "SteamID64 Parsing", "Steam ID")
-                .with_description("Parse 64-bit Steam ID correctly")
-                .with_priority(TestPriority::Critical)
-                .with_doc_reference("https://developer.valvesoftware.com/wiki/SteamID")
-                .pass(Duration::from_millis(5)))
-            .add(TestResult::new("SID-002", "SteamID32 Conversion", "Steam ID")
-                .with_description("Convert between 32-bit and 64-bit formats")
-                .with_priority(TestPriority::Critical)
-                .pass(Duration::from_millis(3)))
-            .add(TestResult::new("AUTH-001", "Valid Steam Login", "Authentication")
-                .with_description("Client authenticates with valid Steam credentials")
-                .with_priority(TestPriority::Critical)
-                .with_doc_reference("https://partner.steamgames.com/doc/features/auth")
-                .pass(Duration::from_millis(10)))
+            .add(
+                TestResult::new("SID-001", "SteamID64 Parsing", "Steam ID")
+                    .with_description("Parse 64-bit Steam ID correctly")
+                    .with_priority(TestPriority::Critical)
+                    .with_doc_reference("https://developer.valvesoftware.com/wiki/SteamID")
+                    .pass(Duration::from_millis(5)),
+            )
+            .add(
+                TestResult::new("SID-002", "SteamID32 Conversion", "Steam ID")
+                    .with_description("Convert between 32-bit and 64-bit formats")
+                    .with_priority(TestPriority::Critical)
+                    .pass(Duration::from_millis(3)),
+            )
+            .add(
+                TestResult::new("AUTH-001", "Valid Steam Login", "Authentication")
+                    .with_description("Client authenticates with valid Steam credentials")
+                    .with_priority(TestPriority::Critical)
+                    .with_doc_reference("https://partner.steamgames.com/doc/features/auth")
+                    .pass(Duration::from_millis(10)),
+            )
             .build();
 
         assert_eq!(report.results.len(), 3);
@@ -862,14 +891,17 @@ mod tests {
     #[test]
     fn test_failed_report() {
         let report = ReportBuilder::new("Test Suite")
-            .add(TestResult::new("TEST-001", "Passing Test", "Tests")
-                .pass(Duration::from_millis(1)))
-            .add(TestResult::new("TEST-002", "Failing Test", "Tests")
-                .fail(Duration::from_millis(2), "Expected 42, got 0"))
+            .add(
+                TestResult::new("TEST-001", "Passing Test", "Tests").pass(Duration::from_millis(1)),
+            )
+            .add(
+                TestResult::new("TEST-002", "Failing Test", "Tests")
+                    .fail(Duration::from_millis(2), "Expected 42, got 0"),
+            )
             .build();
 
         assert!(!report.all_passed());
-        
+
         let stats = report.overall_stats();
         assert_eq!(stats.passed, 1);
         assert_eq!(stats.failed, 1);
@@ -879,12 +911,13 @@ mod tests {
     fn test_html_generation() {
         let report = ReportBuilder::new("HTML Test")
             .subtitle("Test HTML generation")
-            .add(TestResult::new("HTML-001", "Generate HTML", "HTML")
-                .pass(Duration::from_millis(1)))
+            .add(
+                TestResult::new("HTML-001", "Generate HTML", "HTML").pass(Duration::from_millis(1)),
+            )
             .build();
 
         let html = report.to_html();
-        
+
         assert!(html.contains("HTML Test"));
         assert!(html.contains("HTML-001"));
         assert!(html.contains("Generate HTML"));
@@ -901,7 +934,7 @@ mod tests {
             .build();
 
         let by_cat = report.stats_by_category();
-        
+
         assert_eq!(by_cat["Category A"].passed, 2);
         assert_eq!(by_cat["Category A"].failed, 0);
         assert_eq!(by_cat["Category B"].passed, 1);
