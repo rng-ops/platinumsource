@@ -446,10 +446,14 @@ impl ProfanityFilter {
         for word in &self.blocked_words {
             let replacement = self.replacement.to_string().repeat(word.len());
             // Simple case-insensitive replacement
-            let lower = result.to_lowercase();
-            while let Some(pos) = lower.find(word.as_str()) {
-                let end = pos + word.len();
-                result.replace_range(pos..end, &replacement);
+            loop {
+                let lower = result.to_lowercase();
+                if let Some(pos) = lower.find(word.as_str()) {
+                    let end = pos + word.len();
+                    result.replace_range(pos..end, &replacement);
+                } else {
+                    break;
+                }
             }
         }
         result
