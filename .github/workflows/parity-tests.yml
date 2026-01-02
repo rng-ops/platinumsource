@@ -51,7 +51,33 @@ jobs:
         run: cargo build --workspace --release
 
       - name: Run unit tests
-        run: cargo test --workspace
+        run: cargo test --workspace --no-fail-fast -- --test-threads=1 2>&1 | tee test-output.txt
+
+      - name: Parse test results
+        if: always()
+        run: |
+          echo "## 🧪 Unit Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Count test results
+          PASSED=$(grep -c "^test .* ok$" test-output.txt || echo "0")
+          FAILED=$(grep -c "^test .* FAILED$" test-output.txt || echo "0")
+          IGNORED=$(grep -c "^test .* ignored$" test-output.txt || echo "0")
+          
+          echo "| Status | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| ✅ Passed | $PASSED |" >> $GITHUB_STEP_SUMMARY
+          echo "| ❌ Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⏭️ Ignored | $IGNORED |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Show any failed tests
+          if [ "$FAILED" -gt 0 ]; then
+            echo "### Failed Tests" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            grep "^test .* FAILED$" test-output.txt >> $GITHUB_STEP_SUMMARY || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Run parity tests
         env:
@@ -60,10 +86,11 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
         run: |
           mkdir -p test-reports
-          cargo run --release --bin parity_runner -- test-reports
+          cargo run --release --bin parity_runner
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: parity-test-report-${{ github.run_number }}
           path: test-reports/parity-tests.html
@@ -71,12 +98,13 @@ jobs:
 
       - name: Upload JSON Report
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: parity-test-data-${{ github.run_number }}
           path: test-reports/parity-tests.json
           retention-days: ${{ inputs.report_retention || 30 }}
 
-      - name: Generate summary
+      - name: Generate parity summary
         if: always()
         run: |
           echo "## 📊 Parity Test Results" >> $GITHUB_STEP_SUMMARY
@@ -86,6 +114,7 @@ jobs:
             FAILED=$(jq '.overall_stats.failed' test-reports/parity-tests.json)
             TOTAL=$(jq '.overall_stats.total' test-reports/parity-tests.json)
             RATE=$(jq '.overall_stats.pass_rate' test-reports/parity-tests.json)
+            DURATION=$(jq '.overall_stats.total_duration_secs' test-reports/parity-tests.json)
             
             echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
             echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
@@ -93,6 +122,16 @@ jobs:
             echo "| ❌ Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
             echo "| 📋 Total | $TOTAL |" >> $GITHUB_STEP_SUMMARY
             echo "| 📈 Pass Rate | ${RATE}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⏱️ Duration | ${DURATION}s |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Show categories breakdown
+            echo "### Categories" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Category | Passed | Total | Pass Rate |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|--------|-------|-----------|" >> $GITHUB_STEP_SUMMARY
+            jq -r '.categories[] | "| \(.name) | \(.passed) | \(.total) | \(.pass_rate)% |"' test-reports/parity-tests.json >> $GITHUB_STEP_SUMMARY
+            
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "📄 Download the full HTML report from the artifacts." >> $GITHUB_STEP_SUMMARY
           else

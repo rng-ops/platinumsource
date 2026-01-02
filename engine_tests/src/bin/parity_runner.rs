@@ -24,8 +24,16 @@ fn main() {
     let mut builder = ReportBuilder::new("Source Engine Parity Tests")
         .subtitle("Comprehensive validation suite for Source Engine 2014 compatibility")
         .git_info(
-            option_env!("GIT_COMMIT").or(Some("development")),
-            option_env!("GIT_BRANCH").or(Some("main")),
+            std::env::var("GIT_COMMIT")
+                .ok()
+                .as_deref()
+                .or(option_env!("GIT_COMMIT"))
+                .or(Some("development")),
+            std::env::var("GIT_BRANCH")
+                .ok()
+                .as_deref()
+                .or(option_env!("GIT_BRANCH"))
+                .or(Some("main")),
         );
 
     if let Ok(build) = std::env::var("BUILD_NUMBER") {

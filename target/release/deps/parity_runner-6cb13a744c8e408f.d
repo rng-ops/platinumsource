@@ -4,5 +4,5 @@
 
 engine_tests/src/bin/parity_runner.rs:
 
-# env-dep:GIT_BRANCH
-# env-dep:GIT_COMMIT
+# env-dep:GIT_BRANCH=test-branch
+# env-dep:GIT_COMMIT=abc123

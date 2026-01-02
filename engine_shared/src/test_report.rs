@@ -771,11 +771,120 @@ impl TestReport {
         fs::write(path, html)
     }
 
-    /// Save report as JSON.
+    /// Save report as JSON with computed statistics.
+    /// This produces a richer JSON format suitable for CI/CD pipelines.
     pub fn save_json(&self, path: &Path) -> std::io::Result<()> {
-        let json = serde_json::to_string_pretty(self).unwrap();
+        let json_report = self.to_json_report();
+        let json = serde_json::to_string_pretty(&json_report).unwrap();
         fs::write(path, json)
     }
+
+    /// Convert to a JSON-friendly report format with computed statistics.
+    pub fn to_json_report(&self) -> JsonReport {
+        let overall = self.overall_stats();
+        let by_category = self.stats_by_category();
+
+        let categories: Vec<JsonCategoryStats> = by_category
+            .into_iter()
+            .map(|(name, stats)| JsonCategoryStats {
+                name,
+                total: stats.total,
+                passed: stats.passed,
+                failed: stats.failed,
+                skipped: stats.skipped,
+                pending: stats.pending,
+                pass_rate: stats.pass_rate(),
+                total_duration_secs: stats.total_duration.as_secs_f64(),
+            })
+            .collect();
+
+        JsonReport {
+            title: self.title.clone(),
+            subtitle: self.subtitle.clone(),
+            timestamp: self.timestamp,
+            git_commit: self.git_commit.clone(),
+            git_branch: self.git_branch.clone(),
+            build_number: self.build_number.clone(),
+            coverage_percent: self.coverage_percent,
+            overall_stats: JsonOverallStats {
+                total: overall.total,
+                passed: overall.passed,
+                failed: overall.failed,
+                skipped: overall.skipped,
+                pending: overall.pending,
+                pass_rate: overall.pass_rate(),
+                total_duration_secs: overall.total_duration.as_secs_f64(),
+            },
+            categories,
+            results: self.results.iter().map(|r| JsonTestResult {
+                id: r.id.clone(),
+                name: r.name.clone(),
+                category: r.category.clone(),
+                description: r.description.clone(),
+                status: format!("{:?}", r.status),
+                priority: format!("{:?}", r.priority),
+                duration_secs: r.duration.as_secs_f64(),
+                error_message: r.error_message.clone(),
+                doc_reference: r.doc_reference.clone(),
+            }).collect(),
+            metadata: self.metadata.clone(),
+        }
+    }
+}
+
+/// JSON-friendly report format with computed statistics.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonReport {
+    pub title: String,
+    pub subtitle: String,
+    pub timestamp: u64,
+    pub git_commit: Option<String>,
+    pub git_branch: Option<String>,
+    pub build_number: Option<String>,
+    pub coverage_percent: Option<f64>,
+    pub overall_stats: JsonOverallStats,
+    pub categories: Vec<JsonCategoryStats>,
+    pub results: Vec<JsonTestResult>,
+    pub metadata: HashMap<String, String>,
+}
+
+/// Overall statistics in JSON format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonOverallStats {
+    pub total: u32,
+    pub passed: u32,
+    pub failed: u32,
+    pub skipped: u32,
+    pub pending: u32,
+    pub pass_rate: f64,
+    pub total_duration_secs: f64,
+}
+
+/// Category statistics in JSON format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonCategoryStats {
+    pub name: String,
+    pub total: u32,
+    pub passed: u32,
+    pub failed: u32,
+    pub skipped: u32,
+    pub pending: u32,
+    pub pass_rate: f64,
+    pub total_duration_secs: f64,
+}
+
+/// Test result in JSON format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonTestResult {
+    pub id: String,
+    pub name: String,
+    pub category: String,
+    pub description: String,
+    pub status: String,
+    pub priority: String,
+    pub duration_secs: f64,
+    pub error_message: Option<String>,
+    pub doc_reference: Option<String>,
 }
 
 fn chrono_format(timestamp: u64) -> String {

@@ -251,12 +251,133 @@ impl AuthSession {
     }
 }
 
+/// VAC ban status for a player.
+///
+/// Reference: <https://partner.steamgames.com/doc/features/anticheat>
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum VacBanStatus {
+    /// Player has no VAC bans.
+    Clean,
+    /// Player is VAC banned.
+    Banned,
+    /// VAC check is pending.
+    Pending,
+    /// VAC check timed out.
+    TimedOut,
+}
+
+/// Result of VAC validation.
+#[derive(Debug, Clone)]
+pub struct VacValidationResult {
+    /// Whether the player is allowed on this server.
+    pub allowed: bool,
+    /// Auth response to send to client.
+    pub response: AuthSessionResponse,
+    /// Ban status if any.
+    pub ban_status: VacBanStatus,
+}
+
+/// VAC module for server-side anti-cheat.
+///
+/// Reference: <https://partner.steamgames.com/doc/features/anticheat>
+pub struct VacModule {
+    /// Whether VAC is enabled (sv_vac_secure).
+    enabled: bool,
+    /// Initialized status.
+    initialized: bool,
+    /// Known ban statuses (in production, queried from Steam).
+    ban_cache: std::collections::HashMap<SteamId, VacBanStatus>,
+}
+
+impl VacModule {
+    /// Create a new VAC module.
+    pub fn new(enabled: bool) -> Self {
+        VacModule {
+            enabled,
+            initialized: true,
+            ban_cache: std::collections::HashMap::new(),
+        }
+    }
+
+    /// Check if VAC is enabled.
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+
+    /// Check if VAC module is initialized.
+    pub fn is_initialized(&self) -> bool {
+        self.initialized
+    }
+
+    /// Check if this is a secure server.
+    pub fn is_secure_server(&self) -> bool {
+        self.enabled && self.initialized
+    }
+
+    /// Get ban status for a player.
+    pub fn get_ban_status(&self, steam_id: SteamId) -> VacBanStatus {
+        self.ban_cache
+            .get(&steam_id)
+            .copied()
+            .unwrap_or(VacBanStatus::Clean)
+    }
+
+    /// Add or update a ban status (for testing/simulation).
+    pub fn add_ban(&mut self, steam_id: SteamId, status: VacBanStatus) {
+        self.ban_cache.insert(steam_id, status);
+    }
+
+    /// Validate a player for connection.
+    pub fn validate_player(&self, steam_id: SteamId) -> VacValidationResult {
+        let ban_status = self.get_ban_status(steam_id);
+
+        // Insecure servers allow everyone
+        if !self.enabled {
+            return VacValidationResult {
+                allowed: true,
+                response: AuthSessionResponse::Ok,
+                ban_status,
+            };
+        }
+
+        match ban_status {
+            VacBanStatus::Clean => VacValidationResult {
+                allowed: true,
+                response: AuthSessionResponse::Ok,
+                ban_status,
+            },
+            VacBanStatus::Banned => VacValidationResult {
+                allowed: false,
+                response: AuthSessionResponse::VACBanned,
+                ban_status,
+            },
+            VacBanStatus::Pending => VacValidationResult {
+                allowed: true, // Allow while pending
+                response: AuthSessionResponse::Ok,
+                ban_status,
+            },
+            VacBanStatus::TimedOut => VacValidationResult {
+                allowed: false,
+                response: AuthSessionResponse::VACCheckTimedOut,
+                ban_status,
+            },
+        }
+    }
+
+    /// Clear ban cache.
+    pub fn clear_cache(&mut self) {
+        self.ban_cache.clear();
+    }
+}
+
 /// Simulated auth ticket generator for testing.
 ///
 /// In production, this would interface with Steamworks SDK.
 pub struct MockAuthProvider {
     next_handle: u32,
     app_id: u32,
+    /// Active tickets (handle -> is_valid).
+    active_tickets: std::collections::HashMap<u32, bool>,
 }
 
 impl MockAuthProvider {
@@ -264,6 +385,7 @@ impl MockAuthProvider {
         MockAuthProvider {
             next_handle: 1,
             app_id,
+            active_tickets: std::collections::HashMap::new(),
         }
     }
 
@@ -271,6 +393,9 @@ impl MockAuthProvider {
     pub fn get_auth_ticket(&mut self, owner: SteamId) -> AuthTicket {
         let handle = AuthTicketHandle::new(self.next_handle);
         self.next_handle += 1;
+
+        // Track active ticket
+        self.active_tickets.insert(handle.as_u32(), true);
 
         // Generate deterministic ticket data based on owner
         let mut data = Vec::with_capacity(64);
@@ -281,6 +406,34 @@ impl MockAuthProvider {
         data.resize(64, 0);
 
         AuthTicket::new(handle, data, owner, self.app_id)
+    }
+
+    /// Cancel a ticket by handle.
+    pub fn cancel_ticket(&mut self, handle: AuthTicketHandle) {
+        if let Some(valid) = self.active_tickets.get_mut(&handle.as_u32()) {
+            *valid = false;
+        }
+    }
+
+    /// Check if a ticket handle is still valid (not cancelled).
+    pub fn is_ticket_valid(&self, handle: AuthTicketHandle) -> bool {
+        self.active_tickets
+            .get(&handle.as_u32())
+            .copied()
+            .unwrap_or(false)
+    }
+
+    /// Validate a ticket by handle only.
+    pub fn validate_ticket_by_handle(&self, handle: AuthTicketHandle) -> AuthSessionResponse {
+        if !handle.is_valid() {
+            return AuthSessionResponse::AuthTicketInvalid;
+        }
+
+        match self.active_tickets.get(&handle.as_u32()) {
+            Some(true) => AuthSessionResponse::Ok,
+            Some(false) => AuthSessionResponse::AuthTicketCanceled,
+            None => AuthSessionResponse::AuthTicketInvalid,
+        }
     }
 
     /// Validate a ticket (mock implementation).
@@ -297,6 +450,11 @@ impl MockAuthProvider {
         // Check handle
         if !ticket.handle.is_valid() {
             return AuthSessionResponse::AuthTicketInvalid;
+        }
+
+        // Check if ticket was cancelled
+        if !self.is_ticket_valid(ticket.handle) {
+            return AuthSessionResponse::AuthTicketCanceled;
         }
 
         // Check owner matches
@@ -538,5 +696,209 @@ mod tests {
         assert!(AuthSessionResponse::VACCheckTimedOut.is_recoverable());
         assert!(AuthSessionResponse::LoggedInElsewhere.is_recoverable());
         assert!(!AuthSessionResponse::VACBanned.is_recoverable());
+    }
+
+    // =============================================================================
+    // VAC-001: VAC Module Load
+    // Reference: https://partner.steamgames.com/doc/features/anticheat
+    // =============================================================================
+
+    #[test]
+    fn vac_001_module_initialization() {
+        let vac = VacModule::new(true);
+        assert!(vac.is_enabled());
+        assert!(vac.is_initialized());
+    }
+
+    #[test]
+    fn vac_001_disabled_module() {
+        let vac = VacModule::new(false);
+        assert!(!vac.is_enabled());
+    }
+
+    // =============================================================================
+    // VAC-002: VAC Secure Mode Flag
+    // =============================================================================
+
+    #[test]
+    fn vac_002_secure_mode_flag() {
+        let vac = VacModule::new(true);
+        assert!(vac.is_secure_server());
+
+        let insecure = VacModule::new(false);
+        assert!(!insecure.is_secure_server());
+    }
+
+    // =============================================================================
+    // VAC-003: VAC Ban Check
+    // =============================================================================
+
+    #[test]
+    fn vac_003_ban_status_query() {
+        let mut vac = VacModule::new(true);
+        let player = SteamId::from_account_id(12345);
+
+        // Player not banned by default
+        assert_eq!(vac.get_ban_status(player), VacBanStatus::Clean);
+
+        // Add a ban
+        vac.add_ban(player, VacBanStatus::Banned);
+        assert_eq!(vac.get_ban_status(player), VacBanStatus::Banned);
+    }
+
+    // =============================================================================
+    // VAC-004: VAC Ban Rejection
+    // =============================================================================
+
+    #[test]
+    fn vac_004_banned_player_rejected() {
+        let mut vac = VacModule::new(true);
+        let player = SteamId::from_account_id(12345);
+
+        vac.add_ban(player, VacBanStatus::Banned);
+        let result = vac.validate_player(player);
+
+        assert!(!result.allowed);
+        assert_eq!(result.response, AuthSessionResponse::VACBanned);
+    }
+
+    #[test]
+    fn vac_004_clean_player_accepted() {
+        let vac = VacModule::new(true);
+        let player = SteamId::from_account_id(12345);
+
+        let result = vac.validate_player(player);
+        assert!(result.allowed);
+        assert_eq!(result.response, AuthSessionResponse::Ok);
+    }
+
+    // =============================================================================
+    // VAC-005: Insecure Server Bypass
+    // =============================================================================
+
+    #[test]
+    fn vac_005_insecure_allows_banned() {
+        let mut vac = VacModule::new(false); // Insecure
+        let player = SteamId::from_account_id(12345);
+
+        vac.add_ban(player, VacBanStatus::Banned);
+        let result = vac.validate_player(player);
+
+        // Insecure server allows banned players
+        assert!(result.allowed);
+    }
+
+    // =============================================================================
+    // VAC-010: Real-time VAC Status
+    // =============================================================================
+
+    #[test]
+    fn vac_010_mid_session_ban() {
+        let mut vac = VacModule::new(true);
+        let player = SteamId::from_account_id(12345);
+
+        // Initial check - clean
+        let initial = vac.validate_player(player);
+        assert!(initial.allowed);
+
+        // Ban is added during session
+        vac.add_ban(player, VacBanStatus::Banned);
+
+        // Re-check should detect ban
+        let recheck = vac.validate_player(player);
+        assert!(!recheck.allowed);
+    }
+
+    // =============================================================================
+    // TKT-002: Ticket Size Bounds
+    // =============================================================================
+
+    #[test]
+    fn tkt_002_empty_ticket_invalid() {
+        let steam_id = SteamId::from_account_id(12345);
+        let ticket = AuthTicket {
+            handle: AuthTicketHandle::new(1),
+            data: vec![], // Empty
+            owner: steam_id,
+            created_at: Instant::now(),
+            app_id: 730,
+        };
+        assert!(!ticket.is_valid_size());
+    }
+
+    #[test]
+    fn tkt_002_oversized_ticket_invalid() {
+        let steam_id = SteamId::from_account_id(12345);
+        let ticket = AuthTicket {
+            handle: AuthTicketHandle::new(1),
+            data: vec![0; MAX_AUTH_TICKET_SIZE + 1], // Too large
+            owner: steam_id,
+            created_at: Instant::now(),
+            app_id: 730,
+        };
+        assert!(!ticket.is_valid_size());
+    }
+
+    #[test]
+    fn tkt_002_max_size_valid() {
+        let steam_id = SteamId::from_account_id(12345);
+        let ticket = AuthTicket {
+            handle: AuthTicketHandle::new(1),
+            data: vec![0; MAX_AUTH_TICKET_SIZE], // Exactly max
+            owner: steam_id,
+            created_at: Instant::now(),
+            app_id: 730,
+        };
+        assert!(ticket.is_valid_size());
+    }
+
+    // =============================================================================
+    // TKT-005: Ticket Cancellation
+    // =============================================================================
+
+    #[test]
+    fn tkt_005_ticket_cancellation() {
+        let mut provider = MockAuthProvider::new(730);
+        let steam_id = SteamId::from_account_id(12345);
+
+        let ticket = provider.get_auth_ticket(steam_id);
+        let handle = ticket.handle;
+
+        // Ticket should be valid initially
+        assert!(handle.is_valid());
+
+        // Cancel the ticket
+        provider.cancel_ticket(handle);
+
+        // Cancelled tickets should fail validation
+        let result = provider.validate_ticket_by_handle(handle);
+        assert_eq!(result, AuthSessionResponse::AuthTicketCanceled);
+    }
+
+    // =============================================================================
+    // TKT-007: Multiple Tickets
+    // =============================================================================
+
+    #[test]
+    fn tkt_007_multiple_active_tickets() {
+        let mut provider = MockAuthProvider::new(730);
+        let steam_id = SteamId::from_account_id(12345);
+
+        let ticket1 = provider.get_auth_ticket(steam_id);
+        let ticket2 = provider.get_auth_ticket(steam_id);
+        let ticket3 = provider.get_auth_ticket(steam_id);
+
+        // All tickets should be valid and unique
+        assert!(ticket1.handle.is_valid());
+        assert!(ticket2.handle.is_valid());
+        assert!(ticket3.handle.is_valid());
+
+        assert_ne!(ticket1.handle, ticket2.handle);
+        assert_ne!(ticket2.handle, ticket3.handle);
+
+        // All should validate successfully
+        assert_eq!(provider.validate_ticket(&ticket1, steam_id), AuthSessionResponse::Ok);
+        assert_eq!(provider.validate_ticket(&ticket2, steam_id), AuthSessionResponse::Ok);
+        assert_eq!(provider.validate_ticket(&ticket3, steam_id), AuthSessionResponse::Ok);
     }
 }
